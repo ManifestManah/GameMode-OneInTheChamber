@@ -68,6 +68,9 @@ public void OnPluginStart()
 // This happens when a new map is loaded
 public void OnMapStart()
 {
+	// Executes the configuration file containing the modification specific configurations
+	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
+
 	// Removes all of the buy zones from the map
 	RemoveEntityBuyZones();
 
@@ -279,7 +282,7 @@ public void CreateModSpecificConvars()
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
 	// Automatically generates a config file that contains our variables
-	AutoExecConfig(true, "oneinthechamber_convars", "sourcemod/OneInTheChamber");
+	AutoExecConfig(true, "oneinthechamber_convars", "sourcemod/one_in_the_chamber");
 }
 
 
