@@ -2,6 +2,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
+#include <cstrike>
 
 // The code formatting rules we wish to follow
 #pragma semicolon 1;
@@ -27,7 +28,7 @@ public Plugin myinfo =
 
 int cvar_ObjectiveBomb = 0;
 int cvar_ObjectiveHostage = 0;
-
+ConVar cvar_RespawnTime;
 
 //////////////////////////
 // - Global Variables - //
@@ -43,10 +44,16 @@ int cvar_ObjectiveHostage = 0;
 // This happens when the plugin is loaded
 public void OnPluginStart()
 {
+	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 						"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+
 	// Hooks the events that we intend to use in our plugin
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
+	HookEvent("player_team", Event_PlayerTeam, EventHookMode_Post);
 	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
+
+	// Calls upon our CommandListenerJoinTeam function whenever a player changes team
+	AddCommandListener(CommandListenerJoinTeam, "jointeam");
 
 	// Removes any unowned weapon and item entities from the map every second
 	CreateTimer(1.0, Timer_CleanFloor, _, TIMER_REPEAT);
@@ -142,6 +149,22 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 }
 
 
+// This happens when a player joins or changes team 
+public Action CommandListenerJoinTeam(int client, const char[] command, int numArgs)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
+}
+
+
 
 ////////////////
 // - Events - //
@@ -173,6 +196,46 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 	// If the client does not meet our validation criteria then execute this section
 	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
+}
+
+
+// This happens every time a player changes team (NOTE: This is required in order to make late-joining bots respawn)
+public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast)
+{
+	// Obtains the client's userid and converts it to an index and store it within our client variable
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is not a bot then execute this section
+	if(!IsFakeClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is alive then execute this section
+	if(IsPlayerAlive(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Obtains the team which the player changed to
+	int team = GetEventInt(event, "team");
+
+	// If the team is the observer or spectator team execute this section
+	if(team <= 1)
 	{
 		return Plugin_Continue;
 	}
