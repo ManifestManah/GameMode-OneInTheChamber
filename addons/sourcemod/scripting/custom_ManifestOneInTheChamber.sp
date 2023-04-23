@@ -48,8 +48,10 @@ public void OnPluginStart()
 
 	// Removes any unowned weapon and item entities from the map every second
 	CreateTimer(1.0, Timer_CleanFloor, _, TIMER_REPEAT);
-}
 
+	// Allows the modification to be loaded while the server is running, without causing gameplay issues
+	LateLoadSupport();
+}
 
 
 // This happens when a new map is loaded
@@ -151,6 +153,24 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 ///////////////////////////
 // - Regular Functions - //
 ///////////////////////////
+
+
+// This happens when the plugin is loaded
+public void LateLoadSupport()
+{
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
+		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+	}
+}
 
 
 // This happens when a player spawns
