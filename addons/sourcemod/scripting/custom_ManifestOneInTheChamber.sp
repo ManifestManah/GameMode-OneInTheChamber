@@ -26,6 +26,7 @@ public Plugin myinfo =
 /////////////////
 
 int cvar_ObjectiveBomb = 0;
+int cvar_ObjectiveHostage = 0;
 
 
 //////////////////////////
@@ -44,7 +45,7 @@ public void OnPluginStart()
 {
 	// Hooks the events that we intend to use in our plugin
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
-
+	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
 
 	// Removes any unowned weapon and item entities from the map every second
 	CreateTimer(1.0, Timer_CleanFloor, _, TIMER_REPEAT);
@@ -65,6 +66,13 @@ public void OnMapStart()
 	{
 		// Removes all of the bomb sites from the map
 		RemoveEntityBombSites();
+	}
+
+	// If the cvar_ObjectiveHostage is set to 0 then execute this section
+	if(!cvar_ObjectiveHostage)
+	{
+		// Removes Hostage Rescue Points from the map
+		RemoveEntityHostageRescuePoint();
 	}
 }
 
@@ -156,6 +164,18 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 }
 
 
+// This happens when a new round starts
+public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
+{
+	// If the cvar_ObjectiveHostage is set to 0 then execute this section
+	if(!cvar_ObjectiveHostage)
+	{
+		// Removes all of the hostages from the map
+		RemoveEntityHostage();
+	}
+}
+
+
 
 ///////////////////////////
 // - Regular Functions - //
@@ -227,6 +247,7 @@ public void RemoveEntityBombSites()
 }
 
 
+
 // This happens when a player spawns
 public void RemoveAllWeapons(int client)
 {
@@ -250,6 +271,47 @@ public void RemoveAllWeapons(int client)
 
 			AcceptEntityInput(WeaponSlotNumber, "Kill");
 		}
+	}
+}
+
+
+// This happens when a new round starts 
+public void RemoveEntityHostage()
+{
+	// Creates a variable named entity with a value of -1
+	int entity = -1;
+
+	// Loops through all of the entities and tries to find any matching the specified criteria
+	while ((entity = FindEntityByClassname(entity, "hostage_entity")) != -1)
+	{
+		// If the entity does not meet the criteria of validation then execute this section
+		if(!IsValidEntity(entity))
+		{
+			continue;
+		}
+
+		// Kills the entity, removing it from the game
+		AcceptEntityInput(entity, "Kill");
+
+		PrintToChatAll("Debug - A Hostage has been removed from the map :%i", entity);
+	}
+
+	// Changes the value of the entity variable to -1
+	entity = -1;
+
+	// Loops through all of the entities and tries to find any matching the specified criteria
+	while ((entity = FindEntityByClassname(entity, "info_hostage_spawn")) != -1)
+	{
+		// If the entity does not meet the criteria of validation then execute this section
+		if(!IsValidEntity(entity))
+		{
+			continue;
+		}
+
+		// Kills the entity, removing it from the game
+		AcceptEntityInput(entity, "Kill");
+
+		PrintToChatAll("Debug - A Hostage Spawn has been removed from the map :%i", entity);
 	}
 }
 
