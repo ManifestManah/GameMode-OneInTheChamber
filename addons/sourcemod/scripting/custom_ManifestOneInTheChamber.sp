@@ -42,7 +42,8 @@ public Plugin myinfo =
 // This happens when the plugin is loaded
 public void OnPluginStart()
 {
-
+	// Hooks the events that we intend to use in our plugin
+	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
 
 }
 
@@ -81,12 +82,54 @@ public void OnClientDisconnect(int client)
 ////////////////
 
 
+// This happens when a player spawns
+public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcast)
+{
+	// Obtains the client's userid and converts it to an index and store it within our client variable
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return;
+	}
+
+	// Removes all the weapons from the client
+	RemoveAllWeapons(client);
+}
+
 
 
 ///////////////////////////
 // - Regular Functions - //
 ///////////////////////////
 
+
+// This happens when a player spawns
+public void RemoveAllWeapons(int client)
+{
+	for(int loop3 = 0; loop3 < 4; loop3++)
+	{
+		for(int WeaponNumber = 0; WeaponNumber < 24; WeaponNumber++)
+		{
+			int WeaponSlotNumber = GetPlayerWeaponSlot(client, WeaponNumber);
+
+			if(WeaponSlotNumber == -1)
+			{
+				continue;
+			}
+
+			if(!IsValidEdict(WeaponSlotNumber) || !IsValidEntity(WeaponSlotNumber))
+			{
+				continue;
+			}
+
+			RemovePlayerItem(client, WeaponSlotNumber);
+
+			AcceptEntityInput(WeaponSlotNumber, "Kill");
+		}
+	}
+}
 
 
 
@@ -101,4 +144,15 @@ public void OnClientDisconnect(int client)
 // - Return Based Functions - //
 ////////////////////////////////
 
+
+// Returns true if the client meets the validation criteria. elsewise returns false
+public bool IsValidClient(int client)
+{
+	if (!(1 <= client <= MaxClients) || !IsClientConnected(client) || !IsClientInGame(client) || IsClientSourceTV(client) || IsClientReplay(client))
+	{
+		return false;
+	}
+
+	return true;
+}
 
