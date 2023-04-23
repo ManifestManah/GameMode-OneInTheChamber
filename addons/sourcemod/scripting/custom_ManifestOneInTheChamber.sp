@@ -45,6 +45,7 @@ public void OnPluginStart()
 {
 	// Hooks the events that we intend to use in our plugin
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
+	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
 
 	// Removes any unowned weapon and item entities from the map every second
@@ -161,6 +162,25 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 
 	// Removes all the weapons from the client
 	RemoveAllWeapons(client);
+}
+
+
+// This happens when a player dies
+public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadcast)
+{
+	// Obtains the client's userid and converts it to an index and store it within our client variable
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 
@@ -355,6 +375,34 @@ public Action Timer_CleanFloor(Handle timer)
 		// Removes the entity from the map 
 		AcceptEntityInput(entity, "Kill");
 	}
+
+	return Plugin_Continue;
+}
+
+
+// This function is called upon briefly after a player changes team or dies
+public Action Timer_RespawnPlayer(Handle timer, int client)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is on the spectator or observer team then execute this section
+	if(GetClientTeam(client) <= 1)
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is alive then execute this section
+	if(IsPlayerAlive(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Respawns the player
+	CS_RespawnPlayer(client);
 
 	return Plugin_Continue;
 }
