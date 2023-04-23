@@ -348,6 +348,28 @@ public void RemoveEntityBombSites()
 }
 
 
+// This happens when a new map is loaded
+public void RemoveEntityHostageRescuePoint()
+{
+	// Creates a variable named entity with a value of -1
+	int entity = -1;
+
+	// Loops through all of the entities and tries to find any matching the specified criteria
+	while ((entity = FindEntityByClassname(entity, "func_hostage_rescue")) != -1)
+	{
+		// If the entity does not meet the criteria of validation then execute this section
+		if(!IsValidEntity(entity))
+		{
+			continue;
+		}
+
+		// Kills the entity, removing it from the game
+		AcceptEntityInput(entity, "Kill");
+
+		PrintToChatAll("Debug - A Hostage Rescue Point has been removed from the map :%i", entity);
+	}
+}
+
 
 // This happens when a player spawns
 public void RemoveAllWeapons(int client)
