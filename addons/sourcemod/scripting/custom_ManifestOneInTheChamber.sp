@@ -99,6 +99,9 @@ public void OnClientPostAdminCheck(int client)
 
 	// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+	// Adds a hook to the client which will let us track when the player takes damage
+	SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
 }
 
 
@@ -113,6 +116,9 @@ public void OnClientDisconnect(int client)
 
 	// Removes the hook that we had added to the client to track when he was eligible to pick up weapons
 	SDKUnhook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+	// Removes the hook that we had added to the client to track when the player took damage
+	SDKUnhook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
 }
 
 
@@ -149,6 +155,61 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 	AcceptEntityInput(weapon, "Kill");
 
 	return Plugin_Handled;
+}
+
+
+// This happens when the player takes damage
+public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float &damage, int &damagetype) 
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the attacker does not meet our validation criteria then execute this section
+	if(!IsValidClient(attacker))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the inflictor is not a valid entity then execute this section
+	if(!IsValidEntity(inflictor))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the victim and attacker is on the same team
+	if(GetClientTeam(client) == GetClientTeam(attacker))
+	{
+		return Plugin_Continue;
+	}
+
+	// Obtains the name of the player's weapon and store it within our variable entity
+	int entity = GetEntPropEnt(attacker, Prop_Send, "m_hActiveWeapon");
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entity))
+	{
+		return Plugin_Continue;
+	}
+
+	// Creates a variable which we will use to store data within
+	char className[64];
+
+	// Obtains the entity's class name and store it within our className variable
+	GetEntityClassname(entity, className, sizeof(className));
+
+	// If the weapon's entity name is that of a pistols then execute this section
+	if(StrEqual(className, "weapon_deagle", false))
+	{
+		// Changes the amount of damage to zero
+		damage = 500.0;
+
+		return Plugin_Changed;
+	}
+
+	return Plugin_Continue;
 }
 
 
@@ -326,6 +387,9 @@ public void LateLoadSupport()
 
 		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+		// Adds a hook to the client which will let us track when the player takes damage
+		SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
 	}
 }
 
