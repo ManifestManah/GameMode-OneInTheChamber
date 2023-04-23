@@ -21,14 +21,15 @@ public Plugin myinfo =
 
 
 
-
 /////////////////
 // - Convars - //
 /////////////////
 
-int cvar_ObjectiveBomb = 0;
-int cvar_ObjectiveHostage = 0;
 ConVar cvar_RespawnTime;
+ConVar cvar_ObjectiveBomb;
+ConVar cvar_ObjectiveHostage;
+
+
 
 //////////////////////////
 // - Global Variables - //
@@ -44,7 +45,8 @@ ConVar cvar_RespawnTime;
 // This happens when the plugin is loaded
 public void OnPluginStart()
 {
-	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 						"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+	// Creates the names and assigns values to the ConVars the modification will be using 
+	CreateModSpecificConvars();
 
 	// Hooks the events that we intend to use in our plugin
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
@@ -158,7 +160,7 @@ public Action CommandListenerJoinTeam(int client, const char[] command, int numA
 		return Plugin_Continue;
 	}
 
-	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
 	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Continue;
@@ -200,7 +202,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 
-	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
 	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Continue;
@@ -240,7 +242,7 @@ public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadca
 		return Plugin_Continue;
 	}
 
-	// Calls upon the Timer_RespawnPlayer function after (1.5 default) seconds
+	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
 	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Continue;
@@ -263,6 +265,22 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 ///////////////////////////
 // - Regular Functions - //
 ///////////////////////////
+
+
+// This happens when the plugin is loaded
+public void CreateModSpecificConvars()
+{
+	///////////////////////////////
+	// - Configuration Convars - //
+	///////////////////////////////
+
+	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
+	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
+
+	// Automatically generates a config file that contains our variables
+	AutoExecConfig(true, "oneinthechamber_convars", "sourcemod/OneInTheChamber");
+}
 
 
 // This happens when the plugin is loaded
