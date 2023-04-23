@@ -137,7 +137,7 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 	// Obtains the classname of the weapon entity and store it within our ClassName variable
 	GetEntityClassname(weapon, className, sizeof(className));
 
-	// If the weapon's entity name is that of a decoy grenade's then execute this section
+	// If the weapon's entity name is that of a pistols's or knife then execute this section
 	if(StrEqual(className, "weapon_deagle", false) | StrEqual(className, "weapon_knife", false))
 	{
 		return Plugin_Continue;
@@ -200,6 +200,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 
 	// Gives the client a pistol
 	GivePistol(client);
+
+	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+	CreateTimer(0.1, Timer_GiveAmmo, client, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 
@@ -440,6 +443,39 @@ public void GivePistol(int client)
 }
 
 
+// This happens 0.1 second after a player spawns
+public void ChangePlayerAmmo(int client)
+{
+	int entity = GetPlayerWeaponSlot(client, 1);
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entity))
+	{
+		return;
+	}
+
+	// Creates a variable which we will use to store data within
+	char className[64];
+
+	// Obtains the entity's class name and store it within our className variable
+	GetEntityClassname(entity, className, sizeof(className));
+
+	// If the weapon's entity name is that of a pistols then execute this section
+	if(!StrEqual(className, "weapon_deagle", false))
+	{
+		return;
+	}
+
+	PrintToChatAll("Spawned with weapon classname: %s", className);
+
+	// Changes the amount of ammo in the player's pistol clip
+	SetEntProp(entity, Prop_Send, "m_iClip1", 1);
+
+	// Changes the amount of spare ammot the player have for their pistol 
+	SetEntProp(entity, Prop_Send, "m_iPrimaryReserveAmmoCount", 0);
+}
+
+
 // This happens when a new round starts 
 public void RemoveEntityHostage()
 {
@@ -520,6 +556,34 @@ public Action Timer_CleanFloor(Handle timer)
 		// Removes the entity from the map 
 		AcceptEntityInput(entity, "Kill");
 	}
+
+	return Plugin_Continue;
+}
+
+
+// This function is called upon briefly after a player changes team or dies
+public Action Timer_GiveAmmo(Handle timer, int client)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is on the spectator or observer team then execute this section
+	if(GetClientTeam(client) <= 1)
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is not alive then execute this section
+	if(!IsPlayerAlive(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Changes the player's the ammunition and bullets in the clip
+	ChangePlayerAmmo(client);
 
 	return Plugin_Continue;
 }
