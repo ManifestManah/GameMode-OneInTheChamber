@@ -63,20 +63,65 @@ public void OnMapStart()
 // This happens once all post authorizations have been performed and the client is fully in-game
 public void OnClientPostAdminCheck(int client)
 {
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return;
+	}
 
-
-
+	// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
+	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 }
 
 
 // This happens when a player disconnects
 public void OnClientDisconnect(int client)
 {
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return;
+	}
 
-
-
+	// Removes the hook that we had added to the client to track when he was eligible to pick up weapons
+	SDKUnhook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 }
 
+
+// This happens when a player can pick up a weapon
+public Action Hook_WeaponCanUse(int client, int weapon)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the weapon that was picked up our entity criteria of validation then execute this section
+	if(!IsValidEntity(weapon))
+	{
+		return Plugin_Continue;
+	}
+
+	// Creates a variable called ClassName which we will store the weapon entity's name within
+	char className[64];
+
+	// Obtains the classname of the weapon entity and store it within our ClassName variable
+	GetEntityClassname(weapon, className, sizeof(className));
+
+	// If the weapon's entity name is that of a decoy grenade's then execute this section
+	if(StrEqual(className, "weapon_deagle", false) | StrEqual(className, "weapon_knife", false))
+	{
+		return Plugin_Continue;
+	}
+
+	PrintToChatAll("Debug - %s is restricted", className);
+
+	// Kills the weapon entity, removing it from the game
+	AcceptEntityInput(weapon, "Kill");
+
+	return Plugin_Handled;
+}
 
 
 
