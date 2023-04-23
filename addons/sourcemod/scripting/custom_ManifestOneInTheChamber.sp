@@ -195,9 +195,11 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	// Removes all the weapons from the client
 	RemoveAllWeapons(client);
 
+	// Gives the client a knife
+	GiveKnife(client);
+
 	// Gives the client a pistol
 	GivePistol(client);
-
 }
 
 
@@ -419,6 +421,14 @@ public void RemoveAllWeapons(int client)
 			AcceptEntityInput(WeaponSlotNumber, "Kill");
 		}
 	}
+}
+
+
+// This happens when a player spawns
+public void GiveKnife(int client)
+{
+	// Gives the client the specified weapon
+	GivePlayerItem(client, "weapon_knife");
 }
 
 
