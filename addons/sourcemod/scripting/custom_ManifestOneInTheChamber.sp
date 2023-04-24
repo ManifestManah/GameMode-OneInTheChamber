@@ -40,12 +40,17 @@ ConVar cvar_ObjectiveHostage;
 // - Global Variables - //
 //////////////////////////
 
+// Global Booleans
+bool gameHasEnded = false;
+
 // Global Integers
-int KnifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
-int PlayerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
+int maxAmountOfKills = 50;
+int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
+int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
+int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
 
 // Global Floats
-float KnifeMovementSpeedBase = 1.0;
+float knifeMovementSpeedBase = 1.0;
 float KnifeMovementSpeedIncrement = 0.0;
 
 
@@ -84,6 +89,9 @@ public void OnPluginStart()
 // This happens when a new map is loaded
 public void OnMapStart()
 {
+	// Changes the state of whether the game has ended already to false
+	gameHasEnded = false;
+
 	// Removes all of the buy zones from the map
 	RemoveEntityBuyZones();
 
@@ -286,13 +294,13 @@ public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 	}
 
 	// Changes the movement speed of the player to a higher value
-	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", KnifeMovementSpeedBase);
+	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", knifeMovementSpeedBase);
 
 	// Resets the player's stack counter back to 0
-	KnifeMovementSpeedCounter[client] = 0;
+	knifeMovementSpeedCounter[client] = 0;
 
-	// Adds + 1 to the value of our PlayerWeaponSwapCounter[client] variable
-	PlayerWeaponSwapCounter[client]++;
+	// Adds + 1 to the value of our playerWeaponSwapCounter[client] variable
+	playerWeaponSwapCounter[client]++;
 	
 	// Creates a datapack called pack which we will store our data within 
 	DataPack pack = new DataPack();
@@ -300,8 +308,8 @@ public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 	// Stores the client's index within our datapack
 	pack.WriteCell(client);
 
-	// Stores the PlayerWeaponSwapCounter variable within our datapack
-	pack.WriteCell(PlayerWeaponSwapCounter[client]);
+	// Stores the playerWeaponSwapCounter variable within our datapack
+	pack.WriteCell(playerWeaponSwapCounter[client]);
 
 	// After (3.5 default) seconds remove the spawn protection from the player
 	CreateTimer(0.1, Timer_MovementSpeedIncrease, pack, TIMER_FLAG_NO_MAPCHANGE);
@@ -319,7 +327,7 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 	// Obtains client index stored within our data pack and store it within the client variable
 	int client = dataPackage.ReadCell();
 
-	// Obtains the value of PlayerWeaponSwapCounter[client] stored within our data pack and store it within the localSwapCount variable
+	// Obtains the value of playerWeaponSwapCounter[client] stored within our data pack and store it within the localSwapCount variable
 	int localSwapCount = dataPackage.ReadCell();
 	
 	// Deletes our data package after having acquired the information we needed
@@ -331,8 +339,8 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 		return Plugin_Stop;
 	}
 
-	// If the value of localSwapCount and PlayerWeaponSwapCounter[client] variable differs then execute this section
-	if(localSwapCount != PlayerWeaponSwapCounter[client])
+	// If the value of localSwapCount and playerWeaponSwapCounter[client] variable differs then execute this section
+	if(localSwapCount != playerWeaponSwapCounter[client])
 	{
 		// Resets the player's speed and speed related variables
 		ResetPlayerSpeed(client);
@@ -373,16 +381,16 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 	}
 
 	// If the player is already at full speed then execute this section
-	if(KnifeMovementSpeedCounter[client] == 8)
+	if(knifeMovementSpeedCounter[client] == 8)
 	{
 		return Plugin_Stop;
 	}
 
 	// Adds +1 to the player's movement speed counter variable
-	KnifeMovementSpeedCounter[client]++;
+	knifeMovementSpeedCounter[client]++;
 
 	// Calculates the total amount of movement speed and store it within the totalKnifeMovementSpeed variable
-	float totalKnifeMovementSpeed = KnifeMovementSpeedBase + (KnifeMovementSpeedIncrement * KnifeMovementSpeedCounter[client]);
+	float totalKnifeMovementSpeed = knifeMovementSpeedBase + (KnifeMovementSpeedIncrement * knifeMovementSpeedCounter[client]);
 
 	// Changes the movement speed of the player to the value of our totalKnifeMovementSpeed variable
 	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", totalKnifeMovementSpeed);
@@ -395,7 +403,7 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 	// Stores the client's index within our datapack
 	pack.WriteCell(client);
 
-	// Stores the PlayerWeaponSwapCounter variable within our datapack
+	// Stores the playerWeaponSwapCounter variable within our datapack
 	pack.WriteCell(localSwapCount);
 
 	// After (3.5 default) seconds remove the spawn protection from the player
@@ -497,7 +505,6 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 
 
 
-
 ////////////////
 // - Events - //
 ////////////////
@@ -558,6 +565,30 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	if(!IsValidClient(attacker))
 	{
 		return Plugin_Continue;
+	}
+
+	// If the game still hasn't ended then execute this section
+	if(!gameHasEnded)
+	{
+		// Adds + 1 point to the value of the attacker's current kill score
+		playerCurrentKills[attacker]++;
+
+		// If the attacker has acquired a maximum kill score required for the game to end then execute this section
+		if(playerCurrentKills[attacker] >= maxAmountOfKills)
+		{
+			// Changes the game state to having ended
+			gameHasEnded = true;
+
+			PrintToChatAll("The player acquired %i points and ended the game!", maxAmountOfKills);
+
+			//
+//			EndCurrentGame(attacker);
+		}
+
+		else
+		{
+			PrintToChatAll("The player still doesn't have %i points", maxAmountOfKills);
+		}
 	}
 
 	// Creates a variable which we will use to store data within
@@ -691,9 +722,9 @@ public void LateLoadSupport()
 // This happens when the plugin is loaded
 public void CalculateSpeedValues()
 {
-	KnifeMovementSpeedBase = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 5) + 1.0;
+	knifeMovementSpeedBase = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 5) + 1.0;
 	
-	PrintToChatAll("Value of base is: %0.2f", KnifeMovementSpeedBase);
+	PrintToChatAll("Value of base is: %0.2f", knifeMovementSpeedBase);
 
 
 	KnifeMovementSpeedIncrement = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 10);
@@ -776,7 +807,7 @@ public void RemoveEntityHostageRescuePoint()
 public void ResetPlayerSpeed(int client)
 {
 	// Resets the player's stack counter back to 0
-	KnifeMovementSpeedCounter[client] = 0;
+	knifeMovementSpeedCounter[client] = 0;
 
 	// Changes the movement speed of the player back to the default movement speed
 	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.0);
