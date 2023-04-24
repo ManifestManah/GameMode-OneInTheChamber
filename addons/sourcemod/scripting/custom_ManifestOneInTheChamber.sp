@@ -419,6 +419,55 @@ public Action CommandListenerJoinTeam(int client, const char[] command, int numA
 }
 
 
+// This happens when a player presses a key
+public Action OnPlayerRunCmd(int client, int &buttons) 
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is not alive then execute this section
+	if(!IsPlayerAlive(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Obtains the name of the player's weapon and store it within our variable entity
+	int entity = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entity))
+	{
+		return Plugin_Continue;
+	}
+
+	// Creates a variable which we will use to store data within
+	char className[64];
+
+	// Obtains the entity's class name and store it within our className variable
+	GetEntityClassname(entity, className, sizeof(className));
+
+	// If the weapon's entity name is that of a knife then execute this section
+	if(!StrEqual(className, "weapon_knife", false))
+	{
+		return Plugin_Continue;
+	}
+
+	// Prevents the knife entity from being fired by adding a delay to when the next primary attack can be performed
+	SetEntPropFloat(entity, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 1.0);
+
+	// If the button that is being pressed is the left click then execute this section
+	if(buttons & IN_ATTACK)
+	{
+		PrintToChat(client, "You cannot use left click");
+	}
+
+	return Plugin_Continue;
+}
+
+
 
 ////////////////
 // - Events - //
