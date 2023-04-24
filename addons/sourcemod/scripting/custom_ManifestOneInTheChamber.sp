@@ -587,7 +587,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 		else
 		{
-			PrintToChatAll("The player still doesn't have %i points", GetConVarInt(cvar_MaximumKills));
+			PrintToChat(attacker,"You have %i out of %i kills", playerCurrentKills[attacker], GetConVarInt(cvar_MaximumKills));
 		}
 	}
 
@@ -708,6 +708,9 @@ public void LateLoadSupport()
 			continue;
 		}
 
+		//Resets the player's scoreboard stats
+		ResetPlayerScores(client);
+
 		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 
@@ -717,6 +720,29 @@ public void LateLoadSupport()
 		// Adds a hook to the client which will let us track when the player switches weapon
 		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
 	}
+}
+
+
+// This happens when the plugin is loaded
+public void ResetPlayerScores(int client)
+{
+	// Resets the value of the playerCurrentKills variable back to 0
+	playerCurrentKills[client] = 0;
+
+	// Resets the client's kills back to zero
+	SetEntProp(client, Prop_Data, "m_iFrags", 0);
+
+	// Resets the client's assists back to zero
+	CS_SetClientAssists(client, 0);
+
+	// Resets the client's deaths back to zero
+	SetEntProp(client, Prop_Data, "m_iDeaths", 0);
+
+	// Resets the client's mvp awards back to zero
+	CS_SetMVPCount(client, 0);
+
+	// Resets the client's contribution score back to zero
+	CS_SetClientContributionScore(client, 0);
 }
 
 
