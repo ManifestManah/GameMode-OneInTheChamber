@@ -430,8 +430,8 @@ public Action CommandListenerJoinTeam(int client, const char[] command, int numA
 // This happens when a player presses a key
 public Action OnPlayerRunCmd(int client, int &buttons) 
 {
-	// If the cvar_LeftClickKnifing convar returns false then execute this section
-	if(!GetConVarBool(cvar_LeftClickKnifing))
+	// If the cvar_LeftClickKnifing convar returns true then execute this section
+	if(GetConVarBool(cvar_LeftClickKnifing))
 	{
 		return Plugin_Continue;
 	}
@@ -475,11 +475,26 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 	// If the button that is being pressed is the left click then execute this section
 	if(buttons & IN_ATTACK)
 	{
-		PrintToChat(client, "You cannot use left click");
+		// If the client is a bot then execute this section
+		if(IsFakeClient(client))
+		{
+			return Plugin_Continue;
+		}
+
+		// Creates a variable which we will use to store our data within
+		char hudMessage[1024];
+
+		// Formats the message that we wish to send to the player and store it within our message_string variable
+		Format(hudMessage, 1024, "\n<font color='#e30000'>Restriction:</font>");
+		Format(hudMessage, 1024, "%s\n<font color='#fbb227'>Left click knife attacks are disabled</font>", hudMessage);
+
+		// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
+		PrintHintText(client, hudMessage);
 	}
 
 	return Plugin_Continue;
 }
+
 
 
 
