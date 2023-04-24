@@ -855,6 +855,9 @@ public void LateLoadSupport()
 		//Resets the player's scoreboard stats
 		ResetPlayerScores(client);
 
+		// Resets the client's mvp awards back to zero
+		CS_SetMVPCount(client, 0);
+
 		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 
@@ -881,9 +884,6 @@ public void ResetPlayerScores(int client)
 
 	// Resets the client's deaths back to zero
 	SetEntProp(client, Prop_Data, "m_iDeaths", 0);
-
-	// Resets the client's mvp awards back to zero
-	CS_SetMVPCount(client, 0);
 
 	// Resets the client's contribution score back to zero
 	CS_SetClientContributionScore(client, 0);
@@ -1147,6 +1147,9 @@ public void EndCurrentRound(int attacker)
 {
 	// Changes the game state to having ended
 	gameHasEnded = true;
+
+	// Adds + 1 MVP to the player's scoreboard stats
+	CS_SetMVPCount(attacker, CS_GetMVPCount(attacker) + 1);
 
 	// Forcefully ends the round and considers it a round draw
 	CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
