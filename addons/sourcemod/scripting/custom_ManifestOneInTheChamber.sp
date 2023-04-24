@@ -759,7 +759,54 @@ public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 		return;
 	}
 
+
 	PrintToChatAll("The total rounds align!");
+
+	// Creates a variable called entityCounter which we will use to count the game_end entities
+	int entityCounter = 0;
+
+	// Creates a variable named entity with a value of -1
+	int entity = -1;
+
+	// Loops through all of the entities and tries to find any matching the specified criteria
+	while ((entity = FindEntityByClassname(entity, "game_end")) != -1)
+	{
+		// If the entity does not meet the criteria of validation then execute this section
+		if(!IsValidEntity(entity))
+		{
+			continue;
+		}
+
+		// Adds +1 to the value of our entityCounter variable
+		entityCounter++;
+
+		// Ends the current map
+		AcceptEntityInput(entity, "EndGame");
+
+		// Prepares to change the map to a new one
+		PrepareLevelChange();
+	}
+
+	// If our entityCounter is not 0 then execute this section
+	if(entityCounter != 0)
+	{
+		return;
+	}
+
+	// Creates a game_end entity and store it within our entityGameEnd variable
+	int entityGameEnd = CreateEntityByName("game_end");
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entityGameEnd))
+	{
+		return;
+	}
+
+	// Ends the current map
+	AcceptEntityInput(entityGameEnd, "EndGame");
+
+	// Prepares to change the map to a new one
+	PrepareLevelChange();
 }
 
 
@@ -954,6 +1001,36 @@ public void ResetGameState()
 	gameHasEnded = false;
 
 	PrintToChatAll("The game state has been reset to false");
+}
+
+
+// This happens when all of the mp_maxrounds has been played to the end
+public void PrepareLevelChange()
+{
+	if(GetConVarFloat(FindConVar("mp_endmatch_votenextleveltime")) >= 1.0)
+	{
+		// Calls upon the Timer_ChangeLevel function just prior to the expiration of mp_endmatch_votenextleveltime
+		CreateTimer(GetConVarFloat(FindConVar("mp_endmatch_votenextleveltime")) - 0.25, Timer_ChangeLevel, _, TIMER_FLAG_NO_MAPCHANGE);
+
+		return;
+	}
+
+	// Changes the map to a new map
+	ChangeLevel();
+}
+
+
+// Changes the map to a new map
+public void ChangeLevel()
+{
+	// Creates a variable to store our data within
+	char nameOfMap[64];
+	
+	// Obtain the name of the next map and store it within our nameOfMap variable
+	GetNextMap(nameOfMap, sizeof(nameOfMap));
+	
+	// Change the level to the one that is supposed to be the next map	
+	ForceChangeLevel(nameOfMap, "One In The Chamber changed map after all the rounds has been played.");
 }
 
 
@@ -1263,6 +1340,16 @@ public Action Timer_ResetGameState(Handle timer)
 {
 	// Resets the game state back to not having ended
 	ResetGameState();
+
+	return Plugin_Continue;
+}
+
+
+// This function is called upon shortly prior to the game changing to a new map
+public Action Timer_ChangeLevel(Handle timer)
+{
+	// Changes the map to a new map
+	ChangeLevel();
 
 	return Plugin_Continue;
 }
