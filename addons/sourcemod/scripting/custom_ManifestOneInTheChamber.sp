@@ -279,14 +279,36 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 
-	// If the cvar_AutoRespawn is set to 0 then execute this section
-	if(!cvar_AutoRespawn)
+	// If the cvar_AutoRespawn is set to 1 then execute this section
+	if(cvar_AutoRespawn)
+	{
+		// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+		CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
+	}
+
+	// Obtains the attacker's userid and converts it to an index and store it within our attacker variable
+	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
+
+	// If the attacker does not meet our validation criteria then execute this section
+	if(!IsValidClient(attacker))
 	{
 		return Plugin_Continue;
 	}
 
-	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
-	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
+	// Creates a variable which we will use to store data within
+	char attackerWeapon[64];
+
+	// Obtains the name of the attacker's weapon and store it within the variable attackerWeapon
+	GetEventString(event, "weapon", attackerWeapon, sizeof(attackerWeapon));
+
+	// If the attackerWeapon contains the word "knife" then execute this section
+	if(StrContains(attackerWeapon, "knife") == -1)
+	{
+		return Plugin_Continue;
+	}
+
+	// Changes the attacker's the ammunition and bullets in their clip
+	ChangePlayerAmmo(attacker);
 
 	return Plugin_Continue;
 }
