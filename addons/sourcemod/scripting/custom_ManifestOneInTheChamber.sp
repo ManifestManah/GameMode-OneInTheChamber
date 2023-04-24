@@ -34,6 +34,7 @@ ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
 ConVar cvar_HeadshotScoreBonus;
+ConVar cvar_FreeForAll;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -122,6 +123,20 @@ public void OnMapStart()
 	{
 		// Removes Hostage Rescue Points from the map
 		RemoveEntityHostageRescuePoint();
+	}
+
+	// If the cvar_FreeForAll is set to 1 then execute this section
+	if(cvar_FreeForAll)
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/freeforall_settings.cfg");
+	}
+	
+	// If the cvar_FreeForAll is set to 0 then execute this section
+	else
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/teamdeathmatch_settings.cfg");
 	}
 
 	// Executes the configuration file containing the modification specific configurations
@@ -224,10 +239,14 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 		return Plugin_Continue;
 	}
 
-	// If the victim and attacker is on the same team
-	if(GetClientTeam(client) == GetClientTeam(attacker))
+	// If the cvar_FreeForAll is set to 0 then execute this section
+	if(!cvar_FreeForAll)
 	{
-		return Plugin_Continue;
+		// If the victim and attacker is on the same team
+		if(GetClientTeam(client) == GetClientTeam(attacker))
+		{
+			return Plugin_Continue;
+		}
 	}
 
 	// Obtains the name of the player's weapon and store it within our variable entity
@@ -765,6 +784,7 @@ public void CreateModSpecificConvars()
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
 	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
+	cvar_FreeForAll = 					CreateConVar("OITC_FreeForAll", 					"1",	 	"Should the game mode be set to free-for-all mode? - [Default = 1]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
