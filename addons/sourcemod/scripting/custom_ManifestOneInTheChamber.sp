@@ -123,6 +123,9 @@ public void OnMapStart()
 		// Removes Hostage Rescue Points from the map
 		RemoveEntityHostageRescuePoint();
 	}
+
+		// Executes the configuration file containing the modification specific configurations
+	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
 }
 
 
