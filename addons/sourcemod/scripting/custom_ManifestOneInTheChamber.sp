@@ -178,8 +178,6 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 		return Plugin_Continue;
 	}
 
-	PrintToChatAll("Debug - %s is restricted", className);
-
 	// Kills the weapon entity, removing it from the game
 	AcceptEntityInput(weapon, "Kill");
 
@@ -345,8 +343,6 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 		// Resets the player's speed and speed related variables
 		ResetPlayerSpeed(client);
 
-		PrintToChat(client, "Debug - Nope");
-
 		return Plugin_Stop;
 	}
 
@@ -394,8 +390,6 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 
 	// Changes the movement speed of the player to the value of our totalKnifeMovementSpeed variable
 	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", totalKnifeMovementSpeed);
-
-	PrintToChat(client, "debug - total speed is: %0.2f", totalKnifeMovementSpeed);
 
 	// Creates a datapack called pack which we will store our data within 
 	DataPack pack = new DataPack();
@@ -749,14 +743,11 @@ public void ResetPlayerScores(int client)
 // This happens when the plugin is loaded
 public void CalculateSpeedValues()
 {
+	// Calculates the base amount of speed that the player should receive
 	knifeMovementSpeedBase = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 5) + 1.0;
-	
-	PrintToChatAll("Value of base is: %0.2f", knifeMovementSpeedBase);
 
-
+	// Calculates the amount that the speed should gradually increment by and store it within our KnifeMovementSpeedIncrement variable
 	KnifeMovementSpeedIncrement = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 10);
-
-	PrintToChatAll("Value of increment is: %0.2f", KnifeMovementSpeedIncrement);
 }
 
 
@@ -777,8 +768,6 @@ public void RemoveEntityBuyZones()
 
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
-
-		PrintToChatAll("Debug - A Buyzone has been removed from the map :%i", entity);
 	}
 }
 
@@ -801,8 +790,6 @@ public void RemoveEntityBombSites()
 
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
-
-		PrintToChatAll("Debug - A Bomb Target has been removed from the map :%i", entity);
 	}
 }
 
@@ -824,8 +811,6 @@ public void RemoveEntityHostageRescuePoint()
 
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
-
-		PrintToChatAll("Debug - A Hostage Rescue Point has been removed from the map :%i", entity);
 	}
 }
 
@@ -907,8 +892,6 @@ public void ChangePlayerAmmo(int client)
 		return;
 	}
 
-	PrintToChatAll("Spawned with weapon classname: %s", className);
-
 	// Changes the amount of ammo in the player's pistol clip
 	SetEntProp(entity, Prop_Send, "m_iClip1", 1);
 
@@ -934,8 +917,6 @@ public void RemoveEntityHostage()
 
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
-
-		PrintToChatAll("Debug - A Hostage has been removed from the map :%i", entity);
 	}
 
 	// Changes the value of the entity variable to -1
@@ -952,8 +933,6 @@ public void RemoveEntityHostage()
 
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
-
-		PrintToChatAll("Debug - A Hostage Spawn has been removed from the map :%i", entity);
 	}
 }
 
@@ -1091,6 +1070,5 @@ public bool IsWeaponKnife(int entity)
 		return false;
 	}
 
-	PrintToChatAll("debug - Weapon switch post: %s", className);
 	return true;
 }
