@@ -524,7 +524,7 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 		char hudMessage[1024];
 
 		// Formats the message that we wish to send to the player and store it within our message_string variable
-		Format(hudMessage, 1024, "\n<font color='#e30000'>Restriction:</font>");
+		Format(hudMessage, 1024, "\n<font color='#fbb227'>Restriction:</font>");
 		Format(hudMessage, 1024, "%s\n<font color='#fbb227'>Left click knife attacks are disabled</font>", hudMessage);
 
 		// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
@@ -647,7 +647,15 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 		else
 		{
-			PrintToChat(attacker,"You have %i out of %i kills", playerCurrentKills[attacker], GetConVarInt(cvar_MaximumKills));
+			// Creates a variable which we will use to store our data within
+			char hudMessage[1024];
+
+			// Formats the message that we wish to send to the player and store it within our message_string variable
+			Format(hudMessage, 1024, "\n<font color='#fbb227'>Score Tracker:</font>");
+			Format(hudMessage, 1024, "%s\n<font color='#fbb227'>You have</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> out of</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> kill points!</font>", hudMessage, playerCurrentKills[attacker], GetConVarInt(cvar_MaximumKills));
+
+			// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
+			PrintHintText(attacker, hudMessage);
 		}
 	}
 
@@ -668,7 +676,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 	return Plugin_Continue;
 }
-
 
 
 // This happens every time a player changes team (NOTE: This is required in order to make late-joining bots respawn)
@@ -1095,7 +1102,8 @@ public void EndCurrentRound(int attacker)
 	char hudMessage[1024];
 
 	// Modifies the contents stored within the hudMessage variable
-	Format(hudMessage, 1024, "\n<font color='#5fd6f9'>%s</font><font color='#fbb227'> reached</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> kills and won the round!</font>", attackerName, GetConVarInt(cvar_MaximumKills));
+	Format(hudMessage, 1024, "\n<font color='#fbb227'>Winner Announcer:</font>");
+	Format(hudMessage, 1024, "%s\n<font color='#5fd6f9'>%s</font><font color='#fbb227'> reached</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> kills and won the round!</font>", hudMessage, attackerName, GetConVarInt(cvar_MaximumKills));
 
 	// Loops through all of the clients
 	for (int client = 1; client <= MaxClients; client++)
