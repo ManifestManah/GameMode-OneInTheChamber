@@ -81,6 +81,9 @@ public void OnPluginStart()
 	// Fixes an issue with the hint area not displaying html colors
 	AllowHtmlHintMessages();
 
+	// Fixes an issue with the Hud Hint displaying a dollar sign symbol
+	FixDollarSign();
+
 	// Allows the modification to be loaded while the server is running, without causing gameplay issues
 	LateLoadSupport();
 
@@ -1184,4 +1187,18 @@ public void HintTextFix(DataPack hPack)
 	}
 	
 	hPack.Close();
+}
+
+
+/*	Thanks to MaZa for sharing his fix which removes the
+	dollar sign that would appear in the HUD messages.
+	The two resource files below are identical to those that
+	are found in his plugin, and the original plugin can be
+	found as a stand alone at the link below:
+	- https://github.com/xMaZax/fix_hint_dollar 	*/
+
+public void FixDollarSign()
+{
+	AddFileToDownloadsTable("resource/closecaption_english.txt");
+	AddFileToDownloadsTable("resource/closecaption_russian.txt");
 }
