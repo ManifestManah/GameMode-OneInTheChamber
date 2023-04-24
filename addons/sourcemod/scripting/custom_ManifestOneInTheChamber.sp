@@ -437,6 +437,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 		return;
 	}
 
+	// Resets the player's speed and speed related variables
+	ResetPlayerSpeed(client);
+
 	// Removes all the weapons from the client
 	RemoveAllWeapons(client);
 
