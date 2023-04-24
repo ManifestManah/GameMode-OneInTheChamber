@@ -25,7 +25,6 @@ public Plugin myinfo =
 // - Convars - //
 /////////////////
 
-ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
 ConVar cvar_MaximumKills;
 ConVar cvar_MaximumKRounds;
@@ -447,12 +446,6 @@ public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 // This happens when a player joins or changes team 
 public Action CommandListenerJoinTeam(int client, const char[] command, int numArgs)
 {
-	// If the cvar_AutoRespawn is set to 0 then execute this section
-	if(!cvar_AutoRespawn)
-	{
-		return Plugin_Continue;
-	}
-
 	// If the client does not meet our validation criteria then execute this section
 	if(!IsValidClient(client))
 	{
@@ -591,12 +584,8 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 
-	// If the cvar_AutoRespawn is set to 1 then execute this section
-	if(cvar_AutoRespawn)
-	{
-		// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
-		CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
-	}
+	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+	CreateTimer(GetConVarFloat(cvar_RespawnTime), Timer_RespawnPlayer, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	// Obtains the attacker's userid and converts it to an index and store it within our attacker variable
 	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
@@ -681,12 +670,6 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 // This happens every time a player changes team (NOTE: This is required in order to make late-joining bots respawn)
 public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadcast)
 {
-	// If the cvar_AutoRespawn is set to 0 then execute this section
-	if(!cvar_AutoRespawn)
-	{
-		return Plugin_Continue;
-	}
-
 	// Obtains the client's userid and converts it to an index and store it within our client variable
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 
@@ -793,7 +776,6 @@ public void CreateModSpecificConvars()
 	// - Configuration Convars - //
 	///////////////////////////////
 
-	cvar_AutoRespawn =					CreateConVar("OITC_AutoRespawn", 					"1",	 	"Should players be respawned after they die? - [Default = 1]");
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
 	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
 	cvar_MaximumKRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
