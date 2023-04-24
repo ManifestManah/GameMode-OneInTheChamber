@@ -47,6 +47,7 @@ ConVar cvar_ObjectiveHostage;
 bool gameHasEnded = false;
 
 // Global Integers
+int playerCurrentMVPs[MAXPLAYERS + 1] = {0, ...};
 int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
 int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
 int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
@@ -546,6 +547,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 		return;
 	}
 
+	// Sets the player's MVP count to that of the playerCurrentMVPs[client] variable
+	SetPlayerMVPs(client);
+
 	// Resets the player's speed and speed related variables
 	ResetPlayerSpeed(client);
 
@@ -805,6 +809,9 @@ public void LateLoadSupport()
 		//Resets the player's scoreboard stats
 		ResetPlayerScores(client);
 
+		// Resets the value of the playerCurrentMVPs variable back to 0
+		playerCurrentMVPs[client] = 0;
+
 		// Resets the client's mvp awards back to zero
 		CS_SetMVPCount(client, 0);
 
@@ -1007,6 +1014,14 @@ public void AddGameModeTags(const char[] newTag)
 }
 
 
+// This happens when a player wins the round and when the player spawns
+public void SetPlayerMVPs(int client)
+{
+	// Sets the player's MVP count to that of the playerCurrentMVPs[client] variable
+	CS_SetMVPCount(client, playerCurrentMVPs[client]);	
+}
+
+
 // This happens when the player stops holding a knife
 public void ResetPlayerSpeed(int client)
 {
@@ -1098,8 +1113,11 @@ public void EndCurrentRound(int attacker)
 	// Changes the game state to having ended
 	gameHasEnded = true;
 
-	// Adds + 1 MVP to the player's scoreboard stats
-	CS_SetMVPCount(attacker, CS_GetMVPCount(attacker) + 1);
+	// Adds + 1 point to the value of the attacker's current kill score
+	playerCurrentMVPs[attacker]++;
+	
+	// Sets the player's MVP count to that of the playerCurrentMVPs[attacker] variable
+	SetPlayerMVPs(attacker);
 
 	// Forcefully ends the round and considers it a round draw
 	CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
