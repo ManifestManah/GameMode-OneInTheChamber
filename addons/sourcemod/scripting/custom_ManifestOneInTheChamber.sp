@@ -206,6 +206,18 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 		// Changes the amount of damage to zero
 		damage = 500.0;
 
+		// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+		CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
+
+		return Plugin_Changed;
+	}
+
+	// If the weapon's entity name is that of a pistols then execute this section
+	if(StrEqual(className, "weapon_knife", false))
+	{
+		// Changes the amount of damage to zero
+		damage = 500.0;
+
 		return Plugin_Changed;
 	}
 
