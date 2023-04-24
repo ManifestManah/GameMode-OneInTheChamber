@@ -610,17 +610,28 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	// If the game still hasn't ended then execute this section
 	if(!gameHasEnded)
 	{
-		// If the attack was a headshot then execute this section
-		if(GetEventBool(event, "headshot"))
+		// If headshot bonus points are set to more than 1 then execute this section
+		if(GetConVarInt(cvar_HeadshotScoreBonus) > 1)
 		{
-			// Adds + 1 point to the value of the attacker's current kill score
-			playerCurrentKills[attacker] += GetConVarInt(cvar_HeadshotScoreBonus);
+			// If the attack was a headshot then execute this section
+			if(GetEventBool(event, "headshot"))
+			{
+				// Adds + 1 point to the value of the attacker's current kill score
+				playerCurrentKills[attacker] += GetConVarInt(cvar_HeadshotScoreBonus);
 
-			// Adds additional kills to the player's score
-			SetEntProp(attacker, Prop_Data, "m_iFrags", GetClientFrags(attacker) + GetConVarInt(cvar_HeadshotScoreBonus) - 1);
+				// Adds additional kills to the player's score
+				SetEntProp(attacker, Prop_Data, "m_iFrags", playerCurrentKills[attacker]);
+			}
+
+			// If the attack was not a headshot then execute this section
+			else
+			{
+				// Adds + 1 point to the value of the attacker's current kill score
+				playerCurrentKills[attacker]++;
+			}
 		}
 
-		// If the attack was not a headshot then execute this section
+		// If headshot bonus points are set to 1 or less then execute this section
 		else
 		{
 			// Adds + 1 point to the value of the attacker's current kill score
