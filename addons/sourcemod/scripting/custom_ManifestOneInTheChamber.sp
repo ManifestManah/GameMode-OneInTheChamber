@@ -46,6 +46,7 @@ ConVar cvar_ObjectiveHostage;
 bool gameHasEnded = false;
 
 // Global Integers
+int roundCounter = 0;
 int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
 int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
 int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
@@ -72,6 +73,7 @@ public void OnPluginStart()
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 	HookEvent("player_team", Event_PlayerTeam, EventHookMode_Post);
 	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
+	HookEvent("round_end", Event_RoundEnd, EventHookMode_Post);
 
 	// Calls upon our CommandListenerJoinTeam function whenever a player changes team
 	AddCommandListener(CommandListenerJoinTeam, "jointeam");
@@ -670,6 +672,24 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 	}
 }
 
+
+// This happens when a round ends
+public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
+{
+	PrintToChatAll("Current Round: %i", GameRules_GetProp("m_totalRoundsPlayed"));
+
+	GameRules_SetProp("m_totalRoundsPlayed", GameRules_GetProp("m_totalRoundsPlayed") + 1);
+
+	PrintToChatAll("Updated Round: %i", GameRules_GetProp("m_totalRoundsPlayed"));
+
+	// If the mp_maxrounds variable is the same as the current amount of rounds played
+	if(GetConVarInt(FindConVar("mp_maxrounds")) != GameRules_GetProp("m_totalRoundsPlayed"))
+	{
+		return;
+	}
+
+	PrintToChatAll("The total rounds align!");
+}
 
 
 ///////////////////////////
