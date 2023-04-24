@@ -33,6 +33,7 @@ ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
+ConVar cvar_HeadshotScoreBonus;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -590,8 +591,22 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	// If the game still hasn't ended then execute this section
 	if(!gameHasEnded)
 	{
-		// Adds + 1 point to the value of the attacker's current kill score
-		playerCurrentKills[attacker]++;
+		// If the attack was a headshot then execute this section
+		if(GetEventBool(event, "headshot"))
+		{
+			// Adds + 1 point to the value of the attacker's current kill score
+			playerCurrentKills[attacker] += GetConVarInt(cvar_HeadshotScoreBonus);
+
+			// Adds additional kills to the player's score
+			SetEntProp(attacker, Prop_Data, "m_iFrags", GetClientFrags(attacker) + GetConVarInt(cvar_HeadshotScoreBonus) - 1);
+		}
+
+		// If the attack was not a headshot then execute this section
+		else
+		{
+			// Adds + 1 point to the value of the attacker's current kill score
+			playerCurrentKills[attacker]++;
+		}
 
 		// If the attacker has acquired a maximum kill score required for the game to end then execute this section
 		if(playerCurrentKills[attacker] >= GetConVarInt(cvar_MaximumKills))
@@ -749,6 +764,7 @@ public void CreateModSpecificConvars()
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
+	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
