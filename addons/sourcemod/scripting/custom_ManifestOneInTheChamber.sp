@@ -28,6 +28,7 @@ public Plugin myinfo =
 ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
 ConVar cvar_KnifeSpeed;
+ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -36,6 +37,13 @@ ConVar cvar_ObjectiveHostage;
 //////////////////////////
 // - Global Variables - //
 //////////////////////////
+
+// Global Integers
+int KnifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
+
+// Global Floats
+float KnifeMovementSpeedBase = 1.0;
+float KnifeMovementSpeedIncrement = 0.0;
 
 
 
@@ -64,6 +72,9 @@ public void OnPluginStart()
 
 	// Allows the modification to be loaded while the server is running, without causing gameplay issues
 	LateLoadSupport();
+
+	// Calculates the values used for the bonus knife movement speed
+	CalculateSpeedValues();
 }
 
 
@@ -250,22 +261,94 @@ public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 	// If the weapon that was picked up our entity criteria of validation then execute this section
 	if(!IsValidEntity(weapon))
 	{
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
+
 		return Plugin_Continue;
 	}
 
 	// If the weapon entity's classname is not a knife then execute this section
 	if(!IsWeaponKnife(weapon))
 	{
-		// Changes the movement speed of the player back to the default movement speed
-		SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.0);
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
 
 		return Plugin_Continue;
 	}
 
 	// Changes the movement speed of the player to a higher value
-	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.50);
+	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", KnifeMovementSpeedBase);
+
+	// Resets the player's stack counter back to 0
+	KnifeMovementSpeedCounter[client] = 0;
+
+	// Calls upon the Timer_MovementSpeedIncrease function after 0.1 seconds
+	CreateTimer(0.1, Timer_MovementSpeedIncrease, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Handled;
+}
+
+
+// This happens 0.1 seconds after a player switches weapon to a knife
+public Action Timer_MovementSpeedIncrease(Handle timer, int client)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is not alive then execute this section
+	if(!IsPlayerAlive(client))
+	{
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
+
+		return Plugin_Continue;
+	}
+
+	// Obtains the name of the player's weapon and store it within our variable entity
+	int entity = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entity))
+	{
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
+
+		return Plugin_Continue;
+	}
+
+	// If the weapon entity's classname is not a knife then execute this section
+	if(!IsWeaponKnife(entity))
+	{
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
+
+		return Plugin_Continue;
+	}
+
+	// If the player is already at full speed then execute this section
+	if(KnifeMovementSpeedCounter[client] == 8)
+	{
+		return Plugin_Continue;
+	}
+
+	// Adds +1 to the player's movement speed counter variable
+	KnifeMovementSpeedCounter[client]++;
+
+	// Calculates the total amount of movement speed and store it within the totalKnifeMovementSpeed variable
+	float totalKnifeMovementSpeed = KnifeMovementSpeedBase + (KnifeMovementSpeedIncrement * KnifeMovementSpeedCounter[client]);
+
+	// Changes the movement speed of the player to the value of our totalKnifeMovementSpeed variable
+	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", totalKnifeMovementSpeed);
+
+	PrintToChat(client, "debug - total speed is: %0.2f", totalKnifeMovementSpeed);
+
+	// Calls upon the Timer_MovementSpeedIncrease function after 0.1 seconds
+	CreateTimer(0.1, Timer_MovementSpeedIncrease, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 
@@ -444,6 +527,7 @@ public void CreateModSpecificConvars()
 	cvar_AutoRespawn =					CreateConVar("OITC_AutoRespawn", 					"1",	 	"Should players be respawned after they die? - [Default = 1]");
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
+	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
@@ -473,6 +557,20 @@ public void LateLoadSupport()
 		// Adds a hook to the client which will let us track when the player switches weapon
 		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
 	}
+}
+
+
+// This happens when the plugin is loaded
+public void CalculateSpeedValues()
+{
+	KnifeMovementSpeedBase = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 5) + 1.0;
+	
+	PrintToChatAll("Value of base is: %0.2f", KnifeMovementSpeedBase);
+
+
+	KnifeMovementSpeedIncrement = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 10);
+
+	PrintToChatAll("Value of increment is: %0.2f", KnifeMovementSpeedIncrement);
 }
 
 
@@ -543,6 +641,17 @@ public void RemoveEntityHostageRescuePoint()
 
 		PrintToChatAll("Debug - A Hostage Rescue Point has been removed from the map :%i", entity);
 	}
+}
+
+
+// This happens when the player stops holding a knife
+public void ResetPlayerSpeed(int client)
+{
+	// Resets the player's stack counter back to 0
+	KnifeMovementSpeedCounter[client] = 0;
+
+	// Changes the movement speed of the player back to the default movement speed
+	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.0);
 }
 
 
