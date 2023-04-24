@@ -85,11 +85,14 @@ public void OnPluginStart()
 	// Fixes an issue with the Hud Hint displaying a dollar sign symbol
 	FixDollarSign();
 
-	// Allows the modification to be loaded while the server is running, without causing gameplay issues
-	LateLoadSupport();
-
 	// Calculates the values used for the bonus knife movement speed
 	CalculateSpeedValues();
+
+	// Adds an additional tagsto the server's sv_tags line after 3 seconds has passed
+	CreateTimer(3.0, Timer_AddSvTags, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	// Allows the modification to be loaded while the server is running, without causing gameplay issues
+	LateLoadSupport();
 }
 
 
@@ -823,6 +826,29 @@ public void RemoveEntityHostageRescuePoint()
 }
 
 
+// This happens 3.0 seconds after the modification is loaded
+public void AddGameModeTags(const char[] newTag)
+{
+	// Creates a variable to store our data within
+	char lineOfTags[128];
+
+	// Obtains the contents of the sv_tags convar and store it within our variable
+	GetConVarString(FindConVar("sv_tags"), lineOfTags, sizeof(lineOfTags));
+
+	// If the sv_tags line already contains the contents of our newTag variable then execute this section
+	if(StrContains(lineOfTags, newTag, false) != -1)
+	{
+		return;
+	}
+
+	// Formats the lineOfTags to add contents of newTag to the front of the sv_tags line
+	Format(lineOfTags, sizeof(lineOfTags), "%s,%s", newTag, lineOfTags);
+
+	// Changes the sv_tags line to now also include the contents contained within our newTag variable
+	SetConVarString(FindConVar("sv_tags"), lineOfTags, true, false);
+}
+
+
 // This happens when the player stops holding a knife
 public void ResetPlayerSpeed(int client)
 {
@@ -984,6 +1010,16 @@ public Action Timer_CleanFloor(Handle timer)
 		// Removes the entity from the map 
 		AcceptEntityInput(entity, "Kill");
 	}
+
+	return Plugin_Continue;
+}
+
+
+// This happens 3 seconds after the plugin is loaded
+public Action Timer_AddSvTags(Handle timer) 
+{
+	// Adds the specified words to the server's sv_tags line
+	AddGameModeTags("One In The Chamber");
 
 	return Plugin_Continue;
 }
