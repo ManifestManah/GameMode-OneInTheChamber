@@ -46,7 +46,6 @@ ConVar cvar_ObjectiveHostage;
 bool gameHasEnded = false;
 
 // Global Integers
-int roundCounter = 0;
 int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
 int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
 int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
@@ -124,7 +123,7 @@ public void OnMapStart()
 		RemoveEntityHostageRescuePoint();
 	}
 
-		// Executes the configuration file containing the modification specific configurations
+	// Executes the configuration file containing the modification specific configurations
 	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
 }
 
@@ -672,6 +671,19 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 	{
 		// Removes all of the hostages from the map
 		RemoveEntityHostage();
+	}
+	
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		//Resets the player's scoreboard stats
+		ResetPlayerScores(client);
 	}
 }
 
