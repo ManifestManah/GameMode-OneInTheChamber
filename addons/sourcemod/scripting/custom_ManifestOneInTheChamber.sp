@@ -1035,6 +1035,9 @@ public void EndCurrentRound(int attacker)
 	// Changes the game state to having ended
 	gameHasEnded = true;
 
+	// Forcefully ends the round and considers it a round draw
+	CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
+
 	// Creates a variable which we will use to store data within
 	char attackerName[64];
 
