@@ -40,6 +40,7 @@ ConVar cvar_ObjectiveHostage;
 
 // Global Integers
 int KnifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
+int PlayerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
 
 // Global Floats
 float KnifeMovementSpeedBase = 1.0;
@@ -282,20 +283,55 @@ public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 	// Resets the player's stack counter back to 0
 	KnifeMovementSpeedCounter[client] = 0;
 
-	// Calls upon the Timer_MovementSpeedIncrease function after 0.1 seconds
-	CreateTimer(0.1, Timer_MovementSpeedIncrease, client, TIMER_FLAG_NO_MAPCHANGE);
+	// Adds + 1 to the value of our PlayerWeaponSwapCounter[client] variable
+	PlayerWeaponSwapCounter[client]++;
+	
+	// Creates a datapack called pack which we will store our data within 
+	DataPack pack = new DataPack();
 
-	return Plugin_Handled;
+	// Stores the client's index within our datapack
+	pack.WriteCell(client);
+
+	// Stores the PlayerWeaponSwapCounter variable within our datapack
+	pack.WriteCell(PlayerWeaponSwapCounter[client]);
+
+	// After (3.5 default) seconds remove the spawn protection from the player
+	CreateTimer(0.1, Timer_MovementSpeedIncrease, pack, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 
 // This happens 0.1 seconds after a player switches weapon to a knife
-public Action Timer_MovementSpeedIncrease(Handle timer, int client)
+public Action Timer_MovementSpeedIncrease(Handle timer, DataPack dataPackage)
 {
+
+	dataPackage.Reset();
+
+	// Obtains client index stored within our data pack and store it within the client variable
+	int client = dataPackage.ReadCell();
+
+	// Obtains the value of PlayerWeaponSwapCounter[client] stored within our data pack and store it within the localSwapCount variable
+	int localSwapCount = dataPackage.ReadCell();
+	
+	// Deletes our data package after having acquired the information we needed
+	delete dataPackage;
+	
 	// If the client does not meet our validation criteria then execute this section
 	if(!IsValidClient(client))
 	{
-		return Plugin_Continue;
+		return Plugin_Stop;
+	}
+
+	// If the value of localSwapCount and PlayerWeaponSwapCounter[client] variable differs then execute this section
+	if(localSwapCount != PlayerWeaponSwapCounter[client])
+	{
+		// Resets the player's speed and speed related variables
+		ResetPlayerSpeed(client);
+
+		PrintToChat(client, "Debug - Nope");
+
+		return Plugin_Stop;
 	}
 
 	// If the client is not alive then execute this section
@@ -304,7 +340,7 @@ public Action Timer_MovementSpeedIncrease(Handle timer, int client)
 		// Resets the player's speed and speed related variables
 		ResetPlayerSpeed(client);
 
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	// Obtains the name of the player's weapon and store it within our variable entity
@@ -316,7 +352,7 @@ public Action Timer_MovementSpeedIncrease(Handle timer, int client)
 		// Resets the player's speed and speed related variables
 		ResetPlayerSpeed(client);
 
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	// If the weapon entity's classname is not a knife then execute this section
@@ -325,13 +361,13 @@ public Action Timer_MovementSpeedIncrease(Handle timer, int client)
 		// Resets the player's speed and speed related variables
 		ResetPlayerSpeed(client);
 
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	// If the player is already at full speed then execute this section
 	if(KnifeMovementSpeedCounter[client] == 8)
 	{
-		return Plugin_Continue;
+		return Plugin_Stop;
 	}
 
 	// Adds +1 to the player's movement speed counter variable
@@ -345,10 +381,19 @@ public Action Timer_MovementSpeedIncrease(Handle timer, int client)
 
 	PrintToChat(client, "debug - total speed is: %0.2f", totalKnifeMovementSpeed);
 
-	// Calls upon the Timer_MovementSpeedIncrease function after 0.1 seconds
-	CreateTimer(0.1, Timer_MovementSpeedIncrease, client, TIMER_FLAG_NO_MAPCHANGE);
+	// Creates a datapack called pack which we will store our data within 
+	DataPack pack = new DataPack();
 
-	return Plugin_Continue;
+	// Stores the client's index within our datapack
+	pack.WriteCell(client);
+
+	// Stores the PlayerWeaponSwapCounter variable within our datapack
+	pack.WriteCell(localSwapCount);
+
+	// After (3.5 default) seconds remove the spawn protection from the player
+	CreateTimer(0.1, Timer_MovementSpeedIncrease, pack, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Stop;
 }
 
 
@@ -513,7 +558,7 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 
 
 ///////////////////////////
-// - Regular Functions - //
+// - Regular Functions - //4
 ///////////////////////////
 
 
@@ -905,8 +950,6 @@ public bool IsWeaponKnife(int entity)
 		return false;
 	}
 
-	PrintToChatAll("Weapon switch post: %s", className);
+	PrintToChatAll("debug - Weapon switch post: %s", className);
 	return true;
 }
-
-
