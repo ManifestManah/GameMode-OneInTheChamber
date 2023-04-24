@@ -30,6 +30,7 @@ ConVar cvar_RespawnTime;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
+ConVar cvar_OneHitKnifeAttacks;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -230,6 +231,12 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 		CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
 
 		return Plugin_Changed;
+	}
+
+	// If the cvar_OneHitKnifeAttacks convar returns false then execute this section
+	if(!GetConVarBool(cvar_OneHitKnifeAttacks))
+	{
+		return Plugin_Continue;
 	}
 
 	// If the weapon's entity name is that of a pistols then execute this section
@@ -633,6 +640,7 @@ public void CreateModSpecificConvars()
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
+	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
