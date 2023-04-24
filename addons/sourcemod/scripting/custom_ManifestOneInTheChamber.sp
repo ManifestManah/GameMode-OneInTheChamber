@@ -27,6 +27,7 @@ public Plugin myinfo =
 
 ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
+ConVar cvar_MaximumKills;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
@@ -44,7 +45,6 @@ ConVar cvar_ObjectiveHostage;
 bool gameHasEnded = false;
 
 // Global Integers
-int maxAmountOfKills = 50;
 int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
 int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
 int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
@@ -574,12 +574,12 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		playerCurrentKills[attacker]++;
 
 		// If the attacker has acquired a maximum kill score required for the game to end then execute this section
-		if(playerCurrentKills[attacker] >= maxAmountOfKills)
+		if(playerCurrentKills[attacker] >= GetConVarInt(cvar_MaximumKills))
 		{
 			// Changes the game state to having ended
 			gameHasEnded = true;
 
-			PrintToChatAll("The player acquired %i points and ended the game!", maxAmountOfKills);
+			PrintToChatAll("The player acquired %i points and ended the game!", GetConVarInt(cvar_MaximumKills));
 
 			//
 //			EndCurrentGame(attacker);
@@ -587,7 +587,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 		else
 		{
-			PrintToChatAll("The player still doesn't have %i points", maxAmountOfKills);
+			PrintToChatAll("The player still doesn't have %i points", GetConVarInt(cvar_MaximumKills));
 		}
 	}
 
@@ -683,6 +683,7 @@ public void CreateModSpecificConvars()
 
 	cvar_AutoRespawn =					CreateConVar("OITC_AutoRespawn", 					"1",	 	"Should players be respawned after they die? - [Default = 1]");
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills does it require for one player to acquire in order for the map to end? - [Default = 50]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
