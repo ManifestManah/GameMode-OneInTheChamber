@@ -27,6 +27,7 @@ public Plugin myinfo =
 
 ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
+ConVar cvar_KnifeSpeed;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -234,6 +235,12 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 // This happens when a player switches
 public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 {
+	// If the cvar_KnifeSpeed convar returns false then execute this section
+	if(!GetConVarBool(cvar_KnifeSpeed))
+	{
+		return Plugin_Continue;
+	}
+
 	// If the client does not meet our validation criteria then execute this section
 	if(!IsValidClient(client))
 	{
@@ -436,6 +443,7 @@ public void CreateModSpecificConvars()
 
 	cvar_AutoRespawn =					CreateConVar("OITC_AutoRespawn", 					"1",	 	"Should players be respawned after they die? - [Default = 1]");
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
