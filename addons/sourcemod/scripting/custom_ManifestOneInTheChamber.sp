@@ -28,6 +28,7 @@ public Plugin myinfo =
 ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
 ConVar cvar_MaximumKills;
+ConVar cvar_MaximumKRounds;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
@@ -683,7 +684,8 @@ public void CreateModSpecificConvars()
 
 	cvar_AutoRespawn =					CreateConVar("OITC_AutoRespawn", 					"1",	 	"Should players be respawned after they die? - [Default = 1]");
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
-	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills does it require for one player to acquire in order for the map to end? - [Default = 50]");
+	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
+	cvar_MaximumKRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
