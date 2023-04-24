@@ -29,6 +29,7 @@ ConVar cvar_AutoRespawn;
 ConVar cvar_RespawnTime;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
+ConVar cvar_LeftClickKnifing;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -422,6 +423,12 @@ public Action CommandListenerJoinTeam(int client, const char[] command, int numA
 // This happens when a player presses a key
 public Action OnPlayerRunCmd(int client, int &buttons) 
 {
+	// If the cvar_LeftClickKnifing convar returns false then execute this section
+	if(!GetConVarBool(cvar_LeftClickKnifing))
+	{
+		return Plugin_Continue;
+	}
+
 	// If the client does not meet our validation criteria then execute this section
 	if(!IsValidClient(client))
 	{
@@ -625,6 +632,7 @@ public void CreateModSpecificConvars()
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
+	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
