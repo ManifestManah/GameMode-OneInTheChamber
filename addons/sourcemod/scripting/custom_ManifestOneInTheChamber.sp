@@ -102,23 +102,35 @@ public void OnMapStart()
 	// Changes the state of whether the game has ended already to false
 	gameHasEnded = false;
 
-	// Removes all of the buy zones from the map
-	RemoveEntityBuyZones();
+	// 
+	int maxRounds = GetConVarInt(cvar_MaximumKRounds);
 
-	// If the cvar_ObjectiveBomb is set to 0 then execute this section
-	if(!cvar_ObjectiveBomb)
-	{
-		// Removes all of the bomb sites from the map
-		RemoveEntityBombSites();
-	}
+	// Creates a variable to store our data within
+	char maxRoundsString[128];
 
-	// If the cvar_ObjectiveHostage is set to 0 then execute this section
-	if(!cvar_ObjectiveHostage)
+	// 
+	IntToString(maxRounds, maxRoundsString, sizeof(maxRoundsString));
+	
+
+	// Finds the value of cvar_MaximumKRounds and changes the mp_maxrounds to that value
+	SetConVar("mp_maxrounds", maxRoundsString);
+}
+
+
+// This happens when we wish to change a server variable convar
+public void SetConVar(const char[] ConvarName, const char[] ConvarValue)
+{
+	// Finds an existing convar with the specified name and store it within the ServerVariable name 
+	ConVar ServerVariable = FindConVar(ConvarName);
+
+	// If the convar exists then execute this section
+	if(ServerVariable != null)
 	{
-		// Removes Hostage Rescue Points from the map
-		RemoveEntityHostageRescuePoint();
+		// Changes the value of the convar to the value specified in the ConvarValue variable
+		ServerVariable.SetString(ConvarValue, true);
 	}
 }
+
 
 
 // This happens once all post authorizations have been performed and the client is fully in-game
