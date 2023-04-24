@@ -747,11 +747,7 @@ public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 		ResetGameState();
 	}
 
-	PrintToChatAll("Current Round: %i", GameRules_GetProp("m_totalRoundsPlayed"));
-
 	GameRules_SetProp("m_totalRoundsPlayed", GameRules_GetProp("m_totalRoundsPlayed") + 1);
-
-	PrintToChatAll("Updated Round: %i", GameRules_GetProp("m_totalRoundsPlayed"));
 
 	// If the mp_maxrounds variable is the same as the current amount of rounds played
 	if(GetConVarInt(FindConVar("mp_maxrounds")) != GameRules_GetProp("m_totalRoundsPlayed"))
@@ -759,60 +755,14 @@ public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 		return;
 	}
 
-
-	PrintToChatAll("The total rounds align!");
-
-	// Creates a variable called entityCounter which we will use to count the game_end entities
-	int entityCounter = 0;
-
-	// Creates a variable named entity with a value of -1
-	int entity = -1;
-
-	// Loops through all of the entities and tries to find any matching the specified criteria
-	while ((entity = FindEntityByClassname(entity, "game_end")) != -1)
-	{
-		// If the entity does not meet the criteria of validation then execute this section
-		if(!IsValidEntity(entity))
-		{
-			continue;
-		}
-
-		// Adds +1 to the value of our entityCounter variable
-		entityCounter++;
-
-		// Ends the current map
-		AcceptEntityInput(entity, "EndGame");
-
-		// Prepares to change the map to a new one
-		PrepareLevelChange();
-	}
-
-	// If our entityCounter is not 0 then execute this section
-	if(entityCounter != 0)
-	{
-		return;
-	}
-
-	// Creates a game_end entity and store it within our entityGameEnd variable
-	int entityGameEnd = CreateEntityByName("game_end");
-
-	// If the entity does not meet the criteria of validation then execute this section
-	if(!IsValidEntity(entityGameEnd))
-	{
-		return;
-	}
-
-	// Ends the current map
-	AcceptEntityInput(entityGameEnd, "EndGame");
-
-	// Prepares to change the map to a new one
-	PrepareLevelChange();
+	// Calls upon the Timer_StartEndingTheGame function to initiate the ending of the game
+	CreateTimer(2.50, Timer_StartEndingTheGame, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 
 
 ///////////////////////////
-// - Regular Functions - //4
+// - Regular Functions - //
 ///////////////////////////
 
 
@@ -1343,6 +1293,59 @@ public Action Timer_ResetGameState(Handle timer)
 {
 	// Resets the game state back to not having ended
 	ResetGameState();
+
+	return Plugin_Continue;
+}
+
+
+// This function is called upon when the last round on a map has been played
+public Action Timer_StartEndingTheGame(Handle timer)
+{
+	// Creates a variable called entityCounter which we will use to count the game_end entities
+	int entityCounter = 0;
+
+	// Creates a variable named entity with a value of -1
+	int entity = -1;
+
+	// Loops through all of the entities and tries to find any matching the specified criteria
+	while ((entity = FindEntityByClassname(entity, "game_end")) != -1)
+	{
+		// If the entity does not meet the criteria of validation then execute this section
+		if(!IsValidEntity(entity))
+		{
+			continue;
+		}
+
+		// Adds +1 to the value of our entityCounter variable
+		entityCounter++;
+
+		// Ends the current map
+		AcceptEntityInput(entity, "EndGame");
+
+		// Prepares to change the map to a new one
+		PrepareLevelChange();
+	}
+
+	// If our entityCounter is not 0 then execute this section
+	if(entityCounter != 0)
+	{
+		return Plugin_Continue;
+	}
+
+	// Creates a game_end entity and store it within our entityGameEnd variable
+	int entityGameEnd = CreateEntityByName("game_end");
+
+	// If the entity does not meet the criteria of validation then execute this section
+	if(!IsValidEntity(entityGameEnd))
+	{
+		return Plugin_Continue;
+	}
+
+	// Ends the current map
+	AcceptEntityInput(entityGameEnd, "EndGame");
+
+	// Prepares to change the map to a new one
+	PrepareLevelChange();
 
 	return Plugin_Continue;
 }
