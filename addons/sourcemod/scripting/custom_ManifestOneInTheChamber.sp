@@ -102,35 +102,26 @@ public void OnMapStart()
 	// Changes the state of whether the game has ended already to false
 	gameHasEnded = false;
 
-	// 
-	int maxRounds = GetConVarInt(cvar_MaximumKRounds);
+	// Sets the maximum amount of rounds that should be played
+	SetMaxRounds();
 
-	// Creates a variable to store our data within
-	char maxRoundsString[128];
+	// Removes all of the buy zones from the map
+	RemoveEntityBuyZones();
 
-	// 
-	IntToString(maxRounds, maxRoundsString, sizeof(maxRoundsString));
-	
-
-	// Finds the value of cvar_MaximumKRounds and changes the mp_maxrounds to that value
-	SetConVar("mp_maxrounds", maxRoundsString);
-}
-
-
-// This happens when we wish to change a server variable convar
-public void SetConVar(const char[] ConvarName, const char[] ConvarValue)
-{
-	// Finds an existing convar with the specified name and store it within the ServerVariable name 
-	ConVar ServerVariable = FindConVar(ConvarName);
-
-	// If the convar exists then execute this section
-	if(ServerVariable != null)
+	// If the cvar_ObjectiveBomb is set to 0 then execute this section
+	if(!cvar_ObjectiveBomb)
 	{
-		// Changes the value of the convar to the value specified in the ConvarValue variable
-		ServerVariable.SetString(ConvarValue, true);
+		// Removes all of the bomb sites from the map
+		RemoveEntityBombSites();
+	}
+
+	// If the cvar_ObjectiveHostage is set to 0 then execute this section
+	if(!cvar_ObjectiveHostage)
+	{
+		// Removes Hostage Rescue Points from the map
+		RemoveEntityHostageRescuePoint();
 	}
 }
-
 
 
 // This happens once all post authorizations have been performed and the client is fully in-game
@@ -592,13 +583,8 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		// If the attacker has acquired a maximum kill score required for the game to end then execute this section
 		if(playerCurrentKills[attacker] >= GetConVarInt(cvar_MaximumKills))
 		{
-			// Changes the game state to having ended
-			gameHasEnded = true;
-
-			PrintToChatAll("The player acquired %i points and ended the game!", GetConVarInt(cvar_MaximumKills));
-
-			//
-//			EndCurrentGame(attacker);
+			// Ends the current round
+			EndCurrentRound(attacker);
 		}
 
 		else
@@ -624,6 +610,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 	return Plugin_Continue;
 }
+
 
 
 // This happens every time a player changes team (NOTE: This is required in order to make late-joining bots respawn)
@@ -771,6 +758,35 @@ public void CalculateSpeedValues()
 
 	// Calculates the amount that the speed should gradually increment by and store it within our KnifeMovementSpeedIncrement variable
 	KnifeMovementSpeedIncrement = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 10);
+}
+
+
+// This happens when a new map is loaded
+public void SetMaxRounds()
+{
+	// Creates a variable to store our data within
+	char maxRoundsString[128];
+
+	// Converts the maxRounds integer value to a string named maxRoundsString
+	IntToString(GetConVarInt(cvar_MaximumKRounds), maxRoundsString, sizeof(maxRoundsString));
+	
+	// Changes the value of mp_maxrounds to that of our cvar_MaximumKRounds convar
+	SetConVar("mp_maxrounds", maxRoundsString);
+}
+
+
+// This happens when we wish to change a server variable convar
+public void SetConVar(const char[] ConvarName, const char[] ConvarValue)
+{
+	// Finds an existing convar with the specified name and store it within the ServerVariable name 
+	ConVar ServerVariable = FindConVar(ConvarName);
+
+	// If the convar exists then execute this section
+	if(ServerVariable != null)
+	{
+		// Changes the value of the convar to the value specified in the ConvarValue variable
+		ServerVariable.SetString(ConvarValue, true);
+	}
 }
 
 
@@ -943,6 +959,45 @@ public void ChangePlayerAmmo(int client)
 
 	// Changes the amount of spare ammot the player have for their pistol 
 	SetEntProp(entity, Prop_Send, "m_iPrimaryReserveAmmoCount", 0);
+}
+
+
+// This happens when a player dies and a player reaches the maximum amount of kills required in order to win the round 
+public void EndCurrentRound(int attacker)
+{
+	// Changes the game state to having ended
+	gameHasEnded = true;
+
+	// Creates a variable which we will use to store data within
+	char attackerName[64];
+
+	// Obtains the name of attacker and store it within the attackerName variable
+	GetClientName(attacker, attackerName, sizeof(attackerName));
+
+	// Creates a variable which we will use to store our data within
+	char hudMessage[1024];
+
+	// Modifies the contents stored within the hudMessage variable
+	Format(hudMessage, 1024, "\n<font color='#5fd6f9'>%s</font><font color='#fbb227'> reached</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> kills and won the round!</font>", attackerName, GetConVarInt(cvar_MaximumKills));
+
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// If the client is a bot then execute this section
+		if(IsFakeClient(client))
+		{
+			continue;
+		}
+
+		// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
+		PrintHintText(client, hudMessage);
+	}
 }
 
 
