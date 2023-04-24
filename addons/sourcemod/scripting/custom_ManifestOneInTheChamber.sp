@@ -547,6 +547,15 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 
 	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
 	CreateTimer(0.1, Timer_GiveAmmo, client, TIMER_FLAG_NO_MAPCHANGE);
+
+	// If the game still hasn't ended then execute this section
+	if(!gameHasEnded)
+	{
+		return;
+	}
+	
+	// Renders the player unable to move or perform any movement related actions
+	SetEntityFlags(client, GetEntityFlags(client) | FL_FROZEN);
 }
 
 
@@ -691,6 +700,18 @@ public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast
 // This happens when a round ends
 public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 {
+	// If the mp_round_restart_delay convar is higher than 0.0 then execute this section
+	if(GetConVarFloat(FindConVar("mp_round_restart_delay")) > 0.0)
+	{
+		// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+		CreateTimer(GetConVarFloat(FindConVar("mp_round_restart_delay")) - 0.10, Timer_ResetGameState, _, TIMER_FLAG_NO_MAPCHANGE);
+	}
+	else
+	{
+		// Resets the game state back to not having ended
+		ResetGameState();
+	}
+
 	PrintToChatAll("Current Round: %i", GameRules_GetProp("m_totalRoundsPlayed"));
 
 	GameRules_SetProp("m_totalRoundsPlayed", GameRules_GetProp("m_totalRoundsPlayed") + 1);
@@ -705,6 +726,7 @@ public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 
 	PrintToChatAll("The total rounds align!");
 }
+
 
 
 ///////////////////////////
@@ -889,6 +911,16 @@ public void RemoveEntityHostageRescuePoint()
 }
 
 
+// This happens when a round ends and is just about to transition to a new round
+public void ResetGameState()
+{
+	// Resets the game state to not having ended
+	gameHasEnded = false;
+
+	PrintToChatAll("The game state has been reset to false");
+}
+
+
 // This happens 3.0 seconds after the modification is loaded
 public void AddGameModeTags(const char[] newTag)
 {
@@ -1023,6 +1055,9 @@ public void EndCurrentRound(int attacker)
 		{
 			continue;
 		}
+
+		// Renders the player unable to move or perform any movement related actions
+		SetEntityFlags(client, GetEntityFlags(client) | FL_FROZEN);
 
 		// If the client is a bot then execute this section
 		if(IsFakeClient(client))
@@ -1178,6 +1213,16 @@ public Action Timer_RespawnPlayer(Handle timer, int client)
 
 	// Respawns the player
 	CS_RespawnPlayer(client);
+
+	return Plugin_Continue;
+}
+
+
+// This function is called upon briefly after a player changes team or dies
+public Action Timer_ResetGameState(Handle timer)
+{
+	// Resets the game state back to not having ended
+	ResetGameState();
 
 	return Plugin_Continue;
 }
