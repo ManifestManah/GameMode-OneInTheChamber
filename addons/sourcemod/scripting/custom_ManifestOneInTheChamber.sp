@@ -102,6 +102,9 @@ public void OnClientPostAdminCheck(int client)
 
 	// Adds a hook to the client which will let us track when the player takes damage
 	SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
+	// Adds a hook to the client which will let us track when the player switches weapon
+	SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
 }
 
 
@@ -119,6 +122,9 @@ public void OnClientDisconnect(int client)
 
 	// Removes the hook that we had added to the client to track when the player took damage
 	SDKUnhook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
+	// Removes the hook that we had added to the client to track when he they change weapon
+	SDKUnhook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
 }
 
 
@@ -222,6 +228,37 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 	}
 
 	return Plugin_Continue;
+}
+
+
+// This happens when a player switches
+public Action Hook_OnWeaponSwitchPost(int client, int weapon)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the weapon that was picked up our entity criteria of validation then execute this section
+	if(!IsValidEntity(weapon))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the weapon entity's classname is not a knife then execute this section
+	if(!IsWeaponKnife(weapon))
+	{
+		// Changes the movement speed of the player back to the default movement speed
+		SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.0);
+
+		return Plugin_Continue;
+	}
+
+	// Changes the movement speed of the player to a higher value
+	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", 1.50);
+
+	return Plugin_Handled;
 }
 
 
@@ -424,6 +461,9 @@ public void LateLoadSupport()
 
 		// Adds a hook to the client which will let us track when the player takes damage
 		SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
+		// Adds a hook to the client which will let us track when the player switches weapon
+		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
 	}
 }
 
@@ -731,4 +771,25 @@ public bool IsValidClient(int client)
 
 	return true;
 }
+
+
+// Returns true if the entity is a knife elsewise it returns false
+public bool IsWeaponKnife(int entity)
+{
+	// Creates a variable called ClassName which we will store the weapon entity's name within
+	char className[64];
+
+	// Obtains the classname of the weapon entity and store it within our ClassName variable
+	GetEntityClassname(entity, className, sizeof(className));
+
+	// If the weapon entity is not a knife then execute this section
+	if(!StrEqual(className, "weapon_knife", false))
+	{
+		return false;
+	}
+
+	PrintToChatAll("Weapon switch post: %s", className);
+	return true;
+}
+
 
