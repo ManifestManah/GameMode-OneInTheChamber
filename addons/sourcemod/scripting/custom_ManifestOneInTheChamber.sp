@@ -126,22 +126,8 @@ public void OnMapStart()
 		RemoveEntityHostageRescuePoint();
 	}
 
-	// If the cvar_FreeForAll is set to 1 then execute this section
-	if(cvar_FreeForAll)
-	{
-		// Executes the configuration file containing the modification specific configurations
-		ServerCommand("exec sourcemod/one_in_the_chamber/freeforall_settings.cfg");
-	}
-	
-	// If the cvar_FreeForAll is set to 0 then execute this section
-	else
-	{
-		// Executes the configuration file containing the modification specific configurations
-		ServerCommand("exec sourcemod/one_in_the_chamber/teamdeathmatch_settings.cfg");
-	}
-
-	// Executes the configuration file containing the modification specific configurations
-	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
+	// Executes the appropriate configuration files depending on the convar settings
+	ExecuteServerConfigurationFiles();
 
 	// Allows the modification to be loaded while the server is running, without causing gameplay issues
 	LateLoadSupport();
@@ -799,6 +785,31 @@ public void CreateModSpecificConvars()
 
 	// Automatically generates a config file that contains our variables
 	AutoExecConfig(true, "oneinthechamber_convars", "sourcemod/OneInTheChamber");
+}
+
+
+// This happens when a new map is loaded
+public void ExecuteServerConfigurationFiles()
+{
+	// If the cvar_FreeForAll is set to 1 then execute this section
+	if(cvar_FreeForAll)
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/freeforall_settings.cfg");
+	}
+	
+	// If the cvar_FreeForAll is set to 0 then execute this section
+	else
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/teamdeathmatch_settings.cfg");
+	}
+
+	// Executes the configuration file containing the modification specific configurations
+	ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
+
+	// Executes the configuration file containing the modification specific configurations
+	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
 }
 
 
