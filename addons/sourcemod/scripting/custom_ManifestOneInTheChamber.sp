@@ -50,12 +50,16 @@ ConVar cvar_ObjectiveHostage;
 
 // Global Booleans
 bool gameHasEnded = false;
+bool isSpawnProtected[MAXPLAYERS + 1] = {false,...};
+
 
 // Global Integers
+int playerSpawnCounter[MAXPLAYERS + 1] = {0, ...};
 int playerCurrentMVPs[MAXPLAYERS + 1] = {0, ...};
 int playerCurrentKills[MAXPLAYERS + 1] = {0, ...};
 int knifeMovementSpeedCounter[MAXPLAYERS + 1] = {0, ...};
 int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
+
 
 // Global Floats
 float knifeMovementSpeedBase = 1.0;
@@ -80,6 +84,7 @@ public void OnPluginStart()
 	HookEvent("player_team", Event_PlayerTeam, EventHookMode_Post);
 	HookEvent("round_start", Event_RoundStart, EventHookMode_Post);
 	HookEvent("round_end", Event_RoundEnd, EventHookMode_Post);
+	HookEvent("weapon_fire", Event_WeaponFire, EventHookMode_Pre);
 
 	// Calls upon our CommandListenerJoinTeam function whenever a player changes team
 	AddCommandListener(CommandListenerJoinTeam, "jointeam");
@@ -506,6 +511,19 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 	SetEntPropFloat(entity, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 1.0);
 
 	// If the button that is being pressed is the left click then execute this section
+	if(buttons & IN_ATTACK2)
+	{
+		// If the player is not spawn protected then execute this section
+		if(!isSpawnProtected[client])
+		{
+			return Plugin_Continue;
+		}
+
+		// Removes the spawn protection from the client
+		RemoveSpawnProtection(client, 2);
+	}
+
+	// If the button that is being pressed is the left click then execute this section
 	if(buttons & IN_ATTACK)
 	{
 		// If the client is a bot then execute this section
@@ -546,6 +564,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	{
 		return;
 	}
+
+	// Renders the player immune to any incoming damage
+	GivePlayerSpawnProtection(client);
 
 	// Assign a model to the player if Free for all is enabled 
 	SetPlayerModels(client);
@@ -767,6 +788,33 @@ public void Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
 }
 
 
+// This happens when a player fires their weapon
+public Action Event_WeaponFire(Handle event, const char[] name, bool dontBroadcast)
+{
+	// Obtains the client's userid and converts it to an index and store it within our client variable
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the player is not spawn protected then execute this section
+	if(!isSpawnProtected[client])
+	{
+		return Plugin_Continue;
+	}
+
+	// Removes the spawn protection from the client
+	RemoveSpawnProtection(client, 2);
+
+	return Plugin_Continue;
+}
+
+
+
+
 
 ///////////////////////////
 // - Regular Functions - //
@@ -926,10 +974,10 @@ public void SetAutoBunnyHopping()
 	char autoBunnyHoppingString[128];
 
 	// Converts the cvar_AutoBunnyHopping integer value to a string named autoBunnyHopping
-	IntToString(GetConVarInt(cvar_AutoBunnyHopping), autoBunnyHopping, sizeof(autoBunnyHopping));
+	IntToString(GetConVarInt(cvar_AutoBunnyHopping), autoBunnyHoppingString, sizeof(autoBunnyHoppingString));
 	
 	// Changes the value of mp_maxrounds to that of our cvar_MaximumRounds convar
-	SetConVar("sv_autobunnyhopping", autoBunnyHopping);
+	SetConVar("sv_autobunnyhopping", autoBunnyHoppingString);
 }
 
 
@@ -1100,6 +1148,91 @@ public void AddGameModeTags(const char[] newTag)
 
 	// Changes the sv_tags line to now also include the contents contained within our newTag variable
 	SetConVarString(FindConVar("sv_tags"), lineOfTags, true, false);
+}
+
+
+// This happens when a player spawns
+public void GivePlayerSpawnProtection(int client)
+{
+	// If the player is alive then proceed
+	if(!IsPlayerAlive(client))
+	{
+		return;
+	}
+
+	// Renders the client invulnerable
+	SetEntProp(client, Prop_Data, "m_takedamage", 0, 1);
+
+	// Changes the rendering mode of the client
+	SetEntityRenderMode(client, RENDER_TRANSCOLOR);
+
+	// Changes the client's color to purple
+	SetEntityRenderColor(client, 35, 236, 0, 255);
+
+	// Changes the client's isSpawnProtected status to be true
+	isSpawnProtected[client] = true;
+
+	// Adds + 1 to the client's playerSpawnCounter variable
+	playerSpawnCounter[client]++;
+
+	// Creates a datapack called pack which we will store our data within 
+	DataPack pack = new DataPack();
+
+	// Stores the client's index within our datapack
+	pack.WriteCell(client);
+
+	// Stores the playerSpawnCounter variable within our datapack
+	pack.WriteCell(playerSpawnCounter[client]);
+
+	// Calls upon the Timer_RemoveSpawnProtection function after (5.0 default) seconds
+	CreateTimer(5.0, Timer_RemoveSpawnProtection, pack, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+
+// We call upon this function in multiple cases for turning off the player's spawn protection
+public void RemoveSpawnProtection(int client, int disableReason)
+{
+	// If the player is not spawn protected then execute this section
+	if(!isSpawnProtected[client])
+	{
+		return;
+	}
+
+	// Renders the player vulnerable
+	SetEntProp(client, Prop_Data, "m_takedamage", 2, 1);
+
+	// Changes the player's color to the default color 
+	SetEntityRenderColor(client, 255, 255, 255, 255);
+
+	// Changes the client's isSpawnProtected status to be true
+	isSpawnProtected[client] = false;
+
+	// If the client is not a bot then execute this section
+	if(IsFakeClient(client))
+	{
+		return;
+	}
+
+	// Creates a variable which we will use to store our data within
+	char hudMessage[1024];
+
+	// Formats the message that we wish to send to the player and store it within our message_string variable
+	Format(hudMessage, 1024, "\n<font color='#fbb227'>Spawn Protection:</font>");
+
+	// If the disableReason is 1 then execute this section
+	if(disableReason == 1)
+	{
+		Format(hudMessage, 1024, "%s\n<font color='#fbb227'>Your protection time has</font><font color='#5fd6f9'> expired</font><font color='#fbb227'>!</font>", hudMessage);
+	}
+
+	// If the disableReason is 1 then execute this section
+	else if(disableReason == 2)
+	{
+		Format(hudMessage, 1024, "%s\n<font color='#fbb227'>Your protection was</font><font color='#5fd6f9'> turned off</font><font color='#fbb227'> early for attacking!</font>", hudMessage);
+	}
+
+	// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
+	PrintHintText(client, hudMessage);
 }
 
 
@@ -1404,6 +1537,45 @@ public Action Timer_AddSvTags(Handle timer)
 	AddGameModeTags("One In The Chamber");
 
 	return Plugin_Continue;
+}
+
+
+// This function is called upon by our timer
+public Action Timer_RemoveSpawnProtection(Handle timer, DataPack dataPackage)
+{
+	dataPackage.Reset();
+
+	// Obtains client index stored within our data pack and store it within the client variable
+	int client = dataPackage.ReadCell();
+
+	// Obtains the value of playerWeaponSwapCounter[client] stored within our data pack and store it within the localSpawnCount variable
+	int localSpawnCount = dataPackage.ReadCell();
+
+	// Deletes our data package now that we have acquired the information we needed from it
+	delete dataPackage;
+	
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Stop;
+	}
+	
+	// If the player is alive then proceed
+	if(!IsPlayerAlive(client))
+	{
+		return Plugin_Stop;
+	}
+
+	// If the value of localSpawnCount is not the same as the value of the client's playerSpawnCounter then execute this section
+	if(localSpawnCount != playerSpawnCounter[client])
+	{
+		return Plugin_Stop;
+	}
+
+	// Removes the spawn protection from the client
+	RemoveSpawnProtection(client, 1);
+
+	return Plugin_Stop;
 }
 
 
