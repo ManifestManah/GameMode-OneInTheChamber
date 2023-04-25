@@ -26,6 +26,7 @@ public Plugin myinfo =
 /////////////////
 
 ConVar cvar_RespawnTime;
+ConVar cvar_SpawnProtectionTime;
 ConVar cvar_MaximumKills;
 ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeed;
@@ -829,6 +830,7 @@ public void CreateModSpecificConvars()
 	///////////////////////////////
 
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
+	cvar_SpawnProtectionTime = 			CreateConVar("OITC_SpawnProtectionTime", 			"5.00",	 	"How many seconds should a player be protected for after spawning (0.0 means disabled)? - [Default = 5.00]");
 	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
 	cvar_MaximumRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
@@ -1154,6 +1156,12 @@ public void AddGameModeTags(const char[] newTag)
 // This happens when a player spawns
 public void GivePlayerSpawnProtection(int client)
 {
+	// If the value of cvar_SpawnProtectionTime is 0.0 then execute this section
+	if(GetConVarFloat(cvar_SpawnProtectionTime) == 0.0)
+	{
+		return;
+	}
+
 	// If the player is alive then proceed
 	if(!IsPlayerAlive(client))
 	{
@@ -1185,7 +1193,7 @@ public void GivePlayerSpawnProtection(int client)
 	pack.WriteCell(playerSpawnCounter[client]);
 
 	// Calls upon the Timer_RemoveSpawnProtection function after (5.0 default) seconds
-	CreateTimer(5.0, Timer_RemoveSpawnProtection, pack, TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(GetConVarFloat(cvar_SpawnProtectionTime), Timer_RemoveSpawnProtection, pack, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 
