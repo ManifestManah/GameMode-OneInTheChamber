@@ -32,6 +32,7 @@ ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
+ConVar cvar_NoSpreadAndRecoil;
 ConVar cvar_HeadshotScoreBonus;
 ConVar cvar_FreeForAll;
 ConVar cvar_FreeForAllModels;
@@ -777,6 +778,7 @@ public void CreateModSpecificConvars()
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
+	cvar_NoSpreadAndRecoil =			CreateConVar("OITC_NoSpreadAndRecoil", 				"0",	 	"Should weapons have recoil and spread removed from them? - [Default = 0]");
 	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
 	cvar_FreeForAll = 					CreateConVar("OITC_FreeForAll", 					"1",	 	"Should the game mode be set to free-for-all mode? - [Default = 1]");
 	cvar_FreeForAllModels = 			CreateConVar("OITC_FreeForAllModels", 				"1",	 	"Should all players have the same player model when the free-for-all mode is being ran? - [Default = 1]");
@@ -805,8 +807,19 @@ public void ExecuteServerConfigurationFiles()
 		ServerCommand("exec sourcemod/one_in_the_chamber/teamdeathmatch_settings.cfg");
 	}
 
-	// Executes the configuration file containing the modification specific configurations
-	ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
+	// If the cvar_NoSpreadAndRecoil is set to 1 then execute this section
+	if(cvar_NoSpreadAndRecoil)
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
+	}
+	
+	// If the cvar_NoSpreadAndRecoil is set to 0 then execute this section
+	else
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/spreadandrecoil_settings.cfg");
+	}
 
 	// Executes the configuration file containing the modification specific configurations
 	ServerCommand("exec sourcemod/one_in_the_chamber/oneinthechamber_settings.cfg");
