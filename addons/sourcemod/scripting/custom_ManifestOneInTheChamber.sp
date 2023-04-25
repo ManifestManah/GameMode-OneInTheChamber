@@ -30,6 +30,7 @@ ConVar cvar_MaximumKills;
 ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
+ConVar cvar_BunnyHopping;
 ConVar cvar_MaximumVelocity;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
@@ -780,6 +781,7 @@ public void CreateModSpecificConvars()
 	cvar_MaximumRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
+	cvar_BunnyHopping =					CreateConVar("OITC_BunnyHopping", 					"1",	 	"Should the server have bunny jumping settings enabled? - [Default = 1]");
 	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
@@ -824,6 +826,20 @@ public void ExecuteServerConfigurationFiles()
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/spreadandrecoil_settings.cfg");
+	}
+
+	// If the cvar_BunnyHopping is set to 1 then execute this section
+	if(cvar_BunnyHopping)
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/normaljump_settings.cfg");
+	}
+
+	// If the cvar_BunnyHopping is set to 0 then execute this section
+	else
+	{
+		// Executes the configuration file containing the modification specific configurations
+		ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
 	}
 
 	// Executes the configuration file containing the modification specific configurations
