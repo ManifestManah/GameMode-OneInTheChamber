@@ -1167,8 +1167,30 @@ public void EndCurrentRound(int attacker)
 	// Sets the player's MVP count to that of the playerCurrentMVPs[attacker] variable
 	SetPlayerMVPs(attacker);
 
-	// Forcefully ends the round and considers it a round draw
-	CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
+	// If the cvar_FreeForAll is set to 1 then execute this section
+	if(cvar_FreeForAll)
+	{
+		// Forcefully ends the round and considers it a round draw
+		CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
+	}
+
+	// If the cvar_FreeForAll is set to 0 then execute this section
+	else
+	{
+		// If the client is on the terrorist team then execute this section
+		if(GetClientTeam(attacker) == 2)
+		{
+			// Forcefully ends the round and considers it a win for the terrorist team
+			CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_TerroristWin);
+		}
+
+		// If the client is on the counter-terrorist team then execute this section
+		else if(GetClientTeam(attacker) == 3)
+		{
+			// Forcefully ends the round and considers it a win for the counter-terrorist team
+			CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_CTWin);
+		}
+	}
 
 	// Creates a variable which we will use to store data within
 	char attackerName[64];
