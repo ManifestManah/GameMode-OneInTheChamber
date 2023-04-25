@@ -550,6 +550,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 		return;
 	}
 
+	// Assign a model to the player if Free for all is enabled 
+	SetPlayerModels(client);
+
 	// Sets the player's MVP count to that of the playerCurrentMVPs[client] variable
 	SetPlayerMVPs(client);
 
@@ -1014,6 +1017,37 @@ public void AddGameModeTags(const char[] newTag)
 
 	// Changes the sv_tags line to now also include the contents contained within our newTag variable
 	SetConVarString(FindConVar("sv_tags"), lineOfTags, true, false);
+}
+
+
+// This happens when a player spawns
+public void SetPlayerModels(int client)
+{
+	// If the cvar_FreeForAll is set to 0 then execute this section
+	if(!cvar_FreeForAll)
+	{
+		return;
+	}
+	
+	// if the model is not precached already then execute this section
+	if(!IsModelPrecached("models/player/custom_player/legacy/tm_jumpsuit_variantb.mdl"))
+	{	
+		// Precaches the specified model
+		PrecacheModel("models/player/custom_player/legacy/tm_jumpsuit_variantb.mdl", true);
+	}
+	
+	// if the model is not precached already then execute this section
+	if(!IsModelPrecached("models/weapons/v_models/arms/jumpsuit/v_sleeve_jumpsuit.mdl"))
+	{	
+		// Precaches the specified model
+		PrecacheModel("models/weapons/v_models/arms/jumpsuit/v_sleeve_jumpsuit.mdl", true);
+	}
+
+	// Changes the client's model to the specified model
+	SetEntityModel(client, "models/player/custom_player/legacy/tm_jumpsuit_variantb.mdl");
+
+	// Changes the client's arm model to the specified model
+	SetEntPropString(client, Prop_Send, "m_szArmsModel", "models/weapons/v_models/arms/jumpsuit/v_sleeve_jumpsuit.mdl");
 }
 
 
