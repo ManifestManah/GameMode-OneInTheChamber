@@ -27,6 +27,7 @@ public Plugin myinfo =
 
 ConVar cvar_RespawnTime;
 ConVar cvar_SpawnProtectionTime;
+ConVar cvar_SpawnProtectionColoring;
 ConVar cvar_MaximumKills;
 ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeed;
@@ -831,6 +832,7 @@ public void CreateModSpecificConvars()
 
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
 	cvar_SpawnProtectionTime = 			CreateConVar("OITC_SpawnProtectionTime", 			"5.00",	 	"How many seconds should a player be protected for after spawning (0.0 means disabled)? - [Default = 5.00]");
+	cvar_SpawnProtectionColoring =		CreateConVar("OITC_SpawnProtectionColoring", 		"1",	 	"Should players be colored green while spawn protected? - [Default = 1]");
 	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
 	cvar_MaximumRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
@@ -1156,8 +1158,8 @@ public void AddGameModeTags(const char[] newTag)
 // This happens when a player spawns
 public void GivePlayerSpawnProtection(int client)
 {
-	// If the value of cvar_SpawnProtectionTime is 0.0 then execute this section
-	if(GetConVarFloat(cvar_SpawnProtectionTime) == 0.0)
+	// If the value of cvar_SpawnProtectionTime is 0.0 or below then execute this section
+	if(GetConVarFloat(cvar_SpawnProtectionTime) >= 0.0)
 	{
 		return;
 	}
@@ -1168,14 +1170,18 @@ public void GivePlayerSpawnProtection(int client)
 		return;
 	}
 
+	// If the value of cvar_SpawnProtectionColoring is set to 1 then execute this section
+	if(GetConVarInt(cvar_SpawnProtectionColoring))
+	{
+		// Changes the rendering mode of the client
+		SetEntityRenderMode(client, RENDER_TRANSCOLOR);
+
+		// Changes the client's color to purple
+		SetEntityRenderColor(client, 35, 236, 0, 255);
+	}
+
 	// Renders the client invulnerable
 	SetEntProp(client, Prop_Data, "m_takedamage", 0, 1);
-
-	// Changes the rendering mode of the client
-	SetEntityRenderMode(client, RENDER_TRANSCOLOR);
-
-	// Changes the client's color to purple
-	SetEntityRenderColor(client, 35, 236, 0, 255);
 
 	// Changes the client's isSpawnProtected status to be true
 	isSpawnProtected[client] = true;
@@ -1206,11 +1212,15 @@ public void RemoveSpawnProtection(int client, int disableReason)
 		return;
 	}
 
+	// If the value of cvar_SpawnProtectionColoring is set to 1 then execute this section
+	if(GetConVarInt(cvar_SpawnProtectionColoring))
+	{
+		// Changes the player's color to the default color
+		SetEntityRenderColor(client, 255, 255, 255, 255);
+	}
+
 	// Renders the player vulnerable
 	SetEntProp(client, Prop_Data, "m_takedamage", 2, 1);
-
-	// Changes the player's color to the default color 
-	SetEntityRenderColor(client, 255, 255, 255, 255);
 
 	// Changes the client's isSpawnProtected status to be true
 	isSpawnProtected[client] = false;
