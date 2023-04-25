@@ -803,6 +803,9 @@ public void CreateModSpecificConvars()
 // This happens when the plugin is loaded
 public void LateLoadSupport()
 {
+	// Precaches the contents that requires precaching
+	PrecacheContents();
+
 	// Loops through all of the clients
 	for (int client = 1; client <= MaxClients; client++)
 	{
@@ -1230,6 +1233,15 @@ public void RemoveEntityHostage()
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
 	}
+}
+
+
+// This happens when a new map starts and when the plugin is loaded
+public void PrecacheContents()
+{
+	// Precaches the player and arms models
+	PrecacheModel("models/player/custom_player/legacy/tm_jumpsuit_variantb.mdl", true);
+	PrecacheModel("models/weapons/v_models/arms/jumpsuit/v_sleeve_jumpsuit.mdl", true);
 }
 
 
