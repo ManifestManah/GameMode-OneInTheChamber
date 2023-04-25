@@ -34,6 +34,7 @@ ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
 ConVar cvar_HeadshotScoreBonus;
 ConVar cvar_FreeForAll;
+ConVar cvar_FreeForAllModels;
 ConVar cvar_ObjectiveBomb;
 ConVar cvar_ObjectiveHostage;
 
@@ -792,6 +793,7 @@ public void CreateModSpecificConvars()
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
 	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
 	cvar_FreeForAll = 					CreateConVar("OITC_FreeForAll", 					"1",	 	"Should the game mode be set to free-for-all mode? - [Default = 1]");
+	cvar_FreeForAllModels = 			CreateConVar("OITC_FreeForAllModels", 				"1",	 	"Should all players have the same player model when the free-for-all mode is being ran? - [Default = 1]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
@@ -1028,6 +1030,12 @@ public void SetPlayerModels(int client)
 {
 	// If the cvar_FreeForAll is set to 0 then execute this section
 	if(!cvar_FreeForAll)
+	{
+		return;
+	}
+	
+	// If the cvar_FreeForAllModels is set to 0 then execute this section
+	if(!cvar_FreeForAllModels)
 	{
 		return;
 	}
