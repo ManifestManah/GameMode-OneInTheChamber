@@ -31,6 +31,7 @@ ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_BunnyHopping;
+ConVar cvar_AutoBunnyHopping;
 ConVar cvar_MaximumVelocity;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
@@ -108,6 +109,9 @@ public void OnMapStart()
 {
 	// Changes the state of whether the game has ended already to false
 	gameHasEnded = false;
+
+	// Sets whether or not auto bunny jumping should be toggle on or off
+	SetAutoBunnyHopping();
 
 	// Sets the maximum amount of rounds that should be played
 	SetMaxRounds();
@@ -782,6 +786,7 @@ public void CreateModSpecificConvars()
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
 	cvar_BunnyHopping =					CreateConVar("OITC_BunnyHopping", 					"1",	 	"Should the server have bunny jumping settings enabled? - [Default = 1]");
+	cvar_AutoBunnyHopping =				CreateConVar("OITC_AutoBunnyHopping", 				"0",	 	"Should players be able to automatically jump by holding down their jump key? - [Default = 0]");
 	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
@@ -911,6 +916,20 @@ public void CalculateSpeedValues()
 
 	// Calculates the amount that the speed should gradually increment by and store it within our KnifeMovementSpeedIncrement variable
 	KnifeMovementSpeedIncrement = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 10);
+}
+
+
+// This happens when a new map is loaded
+public void SetAutoBunnyHopping()
+{
+	// Creates a variable to store our data within
+	char autoBunnyHoppingString[128];
+
+	// Converts the cvar_AutoBunnyHopping integer value to a string named autoBunnyHopping
+	IntToString(GetConVarInt(cvar_AutoBunnyHopping), autoBunnyHopping, sizeof(autoBunnyHopping));
+	
+	// Changes the value of mp_maxrounds to that of our cvar_MaximumRounds convar
+	SetConVar("sv_autobunnyhopping", autoBunnyHopping);
 }
 
 
