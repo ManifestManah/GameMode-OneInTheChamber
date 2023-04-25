@@ -27,9 +27,10 @@ public Plugin myinfo =
 
 ConVar cvar_RespawnTime;
 ConVar cvar_MaximumKills;
-ConVar cvar_MaximumKRounds;
+ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
+ConVar cvar_MaximumVelocity;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
 ConVar cvar_NoSpreadAndRecoil;
@@ -109,6 +110,9 @@ public void OnMapStart()
 
 	// Sets the maximum amount of rounds that should be played
 	SetMaxRounds();
+
+	// Sets the maximum amount of velocity that should be possible for a player to acquire
+	SetMaxVelocity();
 
 	// Removes all of the buy zones from the map
 	RemoveEntityBuyZones();
@@ -773,9 +777,10 @@ public void CreateModSpecificConvars()
 
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
 	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
-	cvar_MaximumKRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
+	cvar_MaximumRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
 	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
+	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
 	cvar_NoSpreadAndRecoil =			CreateConVar("OITC_NoSpreadAndRecoil", 				"0",	 	"Should weapons have recoil and spread removed from them? - [Default = 0]");
@@ -899,11 +904,25 @@ public void SetMaxRounds()
 	// Creates a variable to store our data within
 	char maxRoundsString[128];
 
-	// Converts the maxRounds integer value to a string named maxRoundsString
-	IntToString(GetConVarInt(cvar_MaximumKRounds), maxRoundsString, sizeof(maxRoundsString));
+	// Converts the cvar_MaximumRounds integer value to a string named maxRoundsString
+	IntToString(GetConVarInt(cvar_MaximumRounds), maxRoundsString, sizeof(maxRoundsString));
 	
-	// Changes the value of mp_maxrounds to that of our cvar_MaximumKRounds convar
+	// Changes the value of mp_maxrounds to that of our cvar_MaximumRounds convar
 	SetConVar("mp_maxrounds", maxRoundsString);
+}
+
+
+// This happens when a new map is loaded
+public void SetMaxVelocity()
+{
+	// Creates a variable to store our data within
+	char maxVelocityString[128];
+
+	// Converts the cvar_MaximumVelocity integer value to a string named maxVelocityString
+	IntToString(GetConVarInt(cvar_MaximumVelocity), maxVelocityString, sizeof(maxVelocityString));
+	
+	// Changes the value of mp_maxrounds to that of our cvar_MaximumVelocity convar
+	SetConVar("sv_maxvelocity ", maxVelocityString);
 }
 
 
