@@ -1,0 +1,22 @@
+"Phrases"
+{
+	// Create a custom function for all places that uses CPrintToChatALL
+	// as it will not necessarily send everybody the correct translation
+	// phrase, but may cause mixups of languages
+
+	"Chat - Mod Loaded"
+	{
+		"en"			"{green}[One In The Chamber]:{default} The modification has been{lightgreen} loaded{default}."
+	}
+
+	"Chat - Mod Unloaded"
+	{
+		"en"			"{green}[One In The Chamber]:{default} The modification has been{lightgreen} unloaded{default}."
+	}
+
+	"Chat - Current Round Random Weapon"
+	{
+		"#format" 		"{1:s}"
+		"en"			"{green}[One In The Chamber]:{default} This round's random weapon is{lightgreen} {1}{default}."
+	}
+}
