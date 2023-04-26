@@ -184,6 +184,12 @@ public void OnClientPostAdminCheck(int client)
 	// Sets the client's recently connected status true
 	isPlayerRecentlyConnected[client] = true;
 
+	// Resets the value of the playerCurrentKills variable back to 0
+	playerCurrentKills[client] = 0;
+
+	// Resets the value of the playerCurrentMVPs variable back to 0
+	playerCurrentMVPs[client] = 0;
+
 	// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 
