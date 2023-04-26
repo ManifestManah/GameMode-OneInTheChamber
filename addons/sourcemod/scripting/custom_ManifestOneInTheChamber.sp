@@ -55,6 +55,7 @@ ConVar cvar_ObjectiveHostage;
 bool gameHasEnded = false;
 bool weaponGivingFailSafe = false;
 bool isSpawnProtected[MAXPLAYERS + 1] = {false,...};
+bool isPlayerRecentlyConnected[MAXPLAYERS + 1] = {false,...};
 
 
 // Global Integers
@@ -176,6 +177,9 @@ public void OnClientPostAdminCheck(int client)
 	{
 		return;
 	}
+
+	// Sets the client's recently connected status true
+	isPlayerRecentlyConnected[client] = true;
 
 	// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
 	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
@@ -554,7 +558,7 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 		// Creates a variable which we will use to store our data within
 		char hudMessage[1024];
 
-		// Formats the message that we wish to send to the player and store it within our message_string variable
+		// Formats the message that we wish to send to the player and store it within our hudMessage variable
 		Format(hudMessage, 1024, "\n<font color='#fbb227'>Restriction:</font>");
 		Format(hudMessage, 1024, "%s\n<font color='#fbb227'>Left click knife attacks are disabled</font>", hudMessage);
 
@@ -595,6 +599,9 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 
 	// Adds a hook to the client which will let us track when the player takes damage
 	SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
+	// Creates and sends a menu with introduction information to the client
+	IntroductionMenu(client);
 
 	// Renders the player immune to any incoming damage
 	GivePlayerSpawnProtection(client);
@@ -704,7 +711,7 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 			// Creates a variable which we will use to store our data within
 			char hudMessage[1024];
 
-			// Formats the message that we wish to send to the player and store it within our message_string variable
+			// Formats the message that we wish to send to the player and store it within our hudMessage variable
 			Format(hudMessage, 1024, "\n<font color='#fbb227'>Score Tracker:</font>");
 			Format(hudMessage, 1024, "%s\n<font color='#fbb227'>You have</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> out of</font><font color='#5fd6f9'> %i</font><font color='#fbb227'> kill points!</font>", hudMessage, playerCurrentKills[attacker], GetConVarInt(cvar_MaximumKills));
 
@@ -1248,8 +1255,24 @@ public void ChooseRandomWeapon()
 		}
 	}
 
-	// Sends the specified multi-language message to all clients
-	SendChatMessageToAll("Chat - Current Round Random Weapon", pistolClassName);
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// If the client is a bot then execute this section
+		if(IsFakeClient(client))
+		{
+			continue;
+		}
+
+		// Sends a multi-language message to the client
+		CPrintToChat(client, "%t", "Chat - Current Round Random Weapon", pistolClassName);
+	}
 }
 
 
@@ -1311,6 +1334,113 @@ public void AddGameModeTags(const char[] newTag)
 
 	// Changes the sv_tags line to now also include the contents contained within our newTag variable
 	SetConVarString(FindConVar("sv_tags"), lineOfTags, true, false);
+}
+
+
+// This happens when a player spawns
+public void IntroductionMenu(int client)
+{
+	// If the client's recently connected status is false then execute this section
+	if(!isPlayerRecentlyConnected[client])
+	{
+		return;
+	}
+
+	// Sets the client's recently connected status false
+	isPlayerRecentlyConnected[client] = false;
+
+	// Creates a menu and connects it to a menu handler
+	Menu introductionMenu = new Menu(introductionMenu_Handler);
+
+	// Creates a variable which we will use to store our data within
+	char menuMessage[1024];
+
+	// Formats the message that we wish to send to the player and store it within our hudMessage variable
+	Format(menuMessage, 1024, "One In The Chamber - How to play");
+	Format(menuMessage, 1024, "%s\n-----------------------------------------", menuMessage);
+
+	Format(menuMessage, 1024, "%s\nYour gun can only contain 1 bullet", menuMessage);
+	Format(menuMessage, 1024, "%s\ngetting a kill refills the gun's clip.", menuMessage);
+
+	Format(menuMessage, 1024, "%s\n  \nWin the round by earning a total of", menuMessage);
+
+	// If headshot bonus points are set to more than 1 then execute this section
+	if(GetConVarInt(cvar_HeadshotScoreBonus) > 1)
+	{
+		Format(menuMessage, 1024, "%s\n%i points. A kill awards 1 point,", menuMessage, GetConVarInt(cvar_MaximumKills));
+		Format(menuMessage, 1024, "%s\nand headshots award %i points.", menuMessage, GetConVarInt(cvar_HeadshotScoreBonus));
+	}
+	else
+	{
+		Format(menuMessage, 1024, "%s\n%i points. A kill awards 1 point.", menuMessage, GetConVarInt(cvar_MaximumKills));
+	}
+
+	// If the value of cvar_KnifeSpeedIncrease is above 0 then execute this section
+	if(GetConVarInt(cvar_KnifeSpeedIncrease) > 0)
+	{
+		// If the value of cvar_LeftClickKnifing is set to false then execute this section
+		if(!GetConVarBool(cvar_LeftClickKnifing))
+		{
+			Format(menuMessage, 1024, "%s\n  \nWielding a knife increases speed.", menuMessage);
+			Format(menuMessage, 1024, "%s\nLeft-knife attacks are disabled.", menuMessage);
+		}
+
+		// If the value of cvar_LeftClickKnifing is set to true then execute this section
+		else
+		{
+			Format(menuMessage, 1024, "%s\n  \nWielding a knife increases speed.", menuMessage);
+		}
+	}
+
+	// If the value of cvar_KnifeSpeedIncrease is 0 or below then execute this section
+	else
+	{
+		// If the value of cvar_LeftClickKnifing is set to false then execute this section
+		if(!GetConVarBool(cvar_LeftClickKnifing))
+		{
+			Format(menuMessage, 1024, "%s\n  \nLeft-knife attacks are disabled.", menuMessage);
+		}
+	}
+
+	// If the value of cvar_RandomPistols is set to true then execute this section
+	if(GetConVarBool(cvar_RandomPistols))
+	{
+		Format(menuMessage, 1024, "%s\n  \nYou get a new pistol each round,", menuMessage, GetConVarInt(cvar_MaximumRounds));
+
+		Format(menuMessage, 1024, "%s\nafter %i rounds the map changes.", menuMessage, GetConVarInt(cvar_MaximumRounds));
+
+	}
+	else
+	{
+		Format(menuMessage, 1024, "%s\n  \nAfter %i rounds the map changes.", menuMessage, GetConVarInt(cvar_MaximumRounds));
+	}
+
+	// If the value of cvar_FreeForAll is set to true then execute this section
+	if(GetConVarBool(cvar_FreeForAll))
+	{
+		Format(menuMessage, 1024, "%s\n  \nThe game is set to free for all.", menuMessage);
+	}
+
+	Format(menuMessage, 1024, "%s\n  ", menuMessage);
+
+	// Adds a title to our menu
+	introductionMenu.SetTitle(menuMessage, "Introduction");
+
+	// Adds an item to our menu
+	introductionMenu.AddItem("Introduction", "I am ready to have fun!", ITEMDRAW_DEFAULT);
+
+	// Disables the menu's exit option 
+	introductionMenu.ExitButton = false;
+
+	// Sends the menu with all of its contents to the client
+	introductionMenu.Display(client, MENU_TIME_FOREVER);
+}
+
+
+// This happens when a player interacts with the introuction menu
+public int introductionMenu_Handler(Menu menu, MenuAction action, int param1, int param2)
+{
+	return;
 }
 
 
@@ -1393,7 +1523,7 @@ public void RemoveSpawnProtection(int client, int disableReason)
 	// Creates a variable which we will use to store our data within
 	char hudMessage[1024];
 
-	// Formats the message that we wish to send to the player and store it within our message_string variable
+	// Formats the message that we wish to send to the player and store it within our hudMessage variable
 	Format(hudMessage, 1024, "\n<font color='#fbb227'>Spawn Protection:</font>");
 
 	// If the disableReason is 1 then execute this section
