@@ -19,4 +19,10 @@
 		"#format" 		"{1:s}"
 		"en"			"{green}[One In The Chamber]:{default} This round's random weapon is{lightgreen} {1}{default}."
 	}
+
+	"Chat - Headshot Bonus"
+	{
+		"#format" 		"{1:i}"
+		"en"			"{green}[One In The Chamber]:{default} You received{lightgreen} {1}{default} bonus point for making a headshot."
+	}
 }
