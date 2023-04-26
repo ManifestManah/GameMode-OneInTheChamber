@@ -3,6 +3,7 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <cstrike>
+#include <multicolors>
 
 // The code formatting rules we wish to follow
 #pragma semicolon 1;
@@ -82,6 +83,9 @@ char pistolClassName[64];
 // This happens when the plugin is loaded
 public void OnPluginStart()
 {
+	// Loads the translaltion file which we intend to use
+	LoadTranslations("manifest_OneInTheChamber.phrases");
+
 	// Creates the names and assigns values to the ConVars the modification will be using 
 	CreateModSpecificConvars();
 
@@ -113,6 +117,14 @@ public void OnPluginStart()
 
 	// Allows the modification to be loaded while the server is running, without causing gameplay issues
 	LateLoadSupport();
+}
+
+
+// This happens when the plugin is unloaded
+public void OnPluginEnd()
+{
+	// Sends the specified multi-language message to all clients
+	SendChatMessageToAll("Chat - Mod Unloaded");
 }
 
 
@@ -937,6 +949,9 @@ public void ExecuteServerConfigurationFiles()
 // This happens when the plugin is loaded
 public void LateLoadSupport()
 {
+	// Sends the specified multi-language message to all clients
+	SendChatMessageToAll("Chat - Mod Loaded");
+
 	// Changes this round's weapon to the specified one
 	pistolClassName = "weapon_deagle";
 
@@ -970,6 +985,30 @@ public void LateLoadSupport()
 
 		// Adds a hook to the client which will let us track when the player switches weapon
 		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
+	}
+}
+
+
+// This happens when the plugin is loaded, unloaded and when a new round starts
+public void SendChatMessageToAll(const char[] chatMessage)
+{
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// If the client is a bot then execute this section
+		if(IsFakeClient(client))
+		{
+			continue;
+		}
+
+		// Sends a multi-language message to the client
+		CPrintToChat(client, "%t", chatMessage);
 	}
 }
 
@@ -1209,7 +1248,8 @@ public void ChooseRandomWeapon()
 		}
 	}
 
-	PrintToChatAll("Number %i - This Round's weapon is %s !", randomWeapon, pistolClassName);
+	// Sends the specified multi-language message to all clients
+	SendChatMessageToAll("Chat - Current Round Random Weapon", pistolClassName);
 }
 
 
@@ -1218,8 +1258,6 @@ public void ResetGameState()
 {
 	// Resets the game state to not having ended
 	gameHasEnded = false;
-
-	PrintToChatAll("The game state has been reset to false");
 }
 
 
