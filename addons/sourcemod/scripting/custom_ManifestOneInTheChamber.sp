@@ -36,6 +36,7 @@ ConVar cvar_AutoBunnyHopping;
 ConVar cvar_MaximumVelocity;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
+ConVar cvar_RandomPistols;
 ConVar cvar_NoSpreadAndRecoil;
 ConVar cvar_HeadshotScoreBonus;
 ConVar cvar_FreeForAll;
@@ -762,8 +763,12 @@ public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadca
 // This happens when a new round starts
 public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
-	// Chooses a random weapon from a list of weapons that will be the one used during this round
-	ChooseRandomWeapon();
+	// If the value of cvar_RandomPistols is set to true then execute this section
+	if(GetConVarBool(cvar_RandomPistols))
+	{
+		// Chooses a random weapon from a list of weapons that will be the one used during this round
+		ChooseRandomWeapon();
+	}
 
 	// If the value of cvar_ObjectiveHostage is set to false then execute this section
 	if(!GetConVarBool(cvar_ObjectiveHostage))
@@ -865,6 +870,7 @@ public void CreateModSpecificConvars()
 	cvar_AutoBunnyHopping =				CreateConVar("OITC_AutoBunnyHopping", 				"0",	 	"Should players be able to automatically jump by holding down their jump key? - [Default = 0]");
 	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
+	cvar_RandomPistols =				CreateConVar("OITC_RandomPistols", 					"0",	 	"Should the players be given a random pistol every new round? - [Default = 0]");
 	cvar_OneHitKnifeAttacks =			CreateConVar("OITC_OneHitKnifeAttacks", 			"1",	 	"Should attacking an enemy with the knife always result in a guranteed kill? - [Default = 1]");
 	cvar_NoSpreadAndRecoil =			CreateConVar("OITC_NoSpreadAndRecoil", 				"0",	 	"Should weapons have recoil and spread removed from them? - [Default = 0]");
 	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
@@ -931,8 +937,15 @@ public void ExecuteServerConfigurationFiles()
 // This happens when the plugin is loaded
 public void LateLoadSupport()
 {
-	// Chooses a random weapon from a list of weapons that will be the one used during this round
-	ChooseRandomWeapon();
+	// Changes this round's weapon to the specified one
+	pistolClassName = "weapon_deagle";
+
+	// If the value of cvar_RandomPistols is set to true then execute this section
+	if(GetConVarBool(cvar_RandomPistols))
+	{
+		// Chooses a random weapon from a list of weapons that will be the one used during this round
+		ChooseRandomWeapon();
+	}
 
 	// Precaches the contents that requires precaching
 	PrecacheContents();
@@ -1122,9 +1135,6 @@ public void RemoveEntityHostageRescuePoint()
 // This happens when a new round starts
 public void ChooseRandomWeapon()
 {
-	// Changes this round's weapon to the specified one
-	pistolClassName = "weapon_deagle";
-
 	// Sets the weaponGivingFailSafe variable to false
 	weaponGivingFailSafe = false;
 
