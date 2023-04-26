@@ -1165,7 +1165,7 @@ public void AddGameModeTags(const char[] newTag)
 public void GivePlayerSpawnProtection(int client)
 {
 	// If the value of cvar_SpawnProtectionTime is 0.0 or below then execute this section
-	if(GetConVarFloat(cvar_SpawnProtectionTime) >= 0.0)
+	if(GetConVarFloat(cvar_SpawnProtectionTime) <= 0.0)
 	{
 		return;
 	}
