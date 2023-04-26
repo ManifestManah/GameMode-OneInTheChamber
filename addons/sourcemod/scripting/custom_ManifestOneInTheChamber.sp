@@ -118,6 +118,9 @@ public void OnPluginStart()
 
 	// Allows the modification to be loaded while the server is running, without causing gameplay issues
 	LateLoadSupport();
+
+	// Sends the specified multi-language message to all clients
+	SendChatMessageToAll("Chat - Mod Loaded");
 }
 
 
@@ -954,9 +957,6 @@ public void ExecuteServerConfigurationFiles()
 // This happens when the plugin is loaded
 public void LateLoadSupport()
 {
-	// Sends the specified multi-language message to all clients
-	SendChatMessageToAll("Chat - Mod Loaded");
-
 	// Ends the round informing players about a new round soon starting
 	EndCurrentRoundByReloading();
 
