@@ -30,7 +30,6 @@ ConVar cvar_SpawnProtectionTime;
 ConVar cvar_SpawnProtectionColoring;
 ConVar cvar_MaximumKills;
 ConVar cvar_MaximumRounds;
-ConVar cvar_KnifeSpeed;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_BunnyHopping;
 ConVar cvar_AutoBunnyHopping;
@@ -129,15 +128,15 @@ public void OnMapStart()
 	// Removes all of the buy zones from the map
 	RemoveEntityBuyZones();
 
-	// If the cvar_ObjectiveBomb is set to 0 then execute this section
-	if(!cvar_ObjectiveBomb)
+	// If the value of cvar_ObjectiveBomb is set to false then execute this section
+	if(!GetConVarBool(cvar_ObjectiveBomb))
 	{
 		// Removes all of the bomb sites from the map
 		RemoveEntityBombSites();
 	}
 
-	// If the cvar_ObjectiveHostage is set to 0 then execute this section
-	if(!cvar_ObjectiveHostage)
+	// If the value of cvar_ObjectiveHostage is set to false then execute this section
+	if(!GetConVarBool(cvar_ObjectiveHostage))
 	{
 		// Removes Hostage Rescue Points from the map
 		RemoveEntityHostageRescuePoint();
@@ -246,8 +245,8 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 		return Plugin_Continue;
 	}
 
-	// If the cvar_FreeForAll is set to 0 then execute this section
-	if(!cvar_FreeForAll)
+	// If the value of cvar_FreeForAll is set to false then execute this section
+	if(!GetConVarBool(cvar_FreeForAll))
 	{
 		// If the victim and attacker is on the same team
 		if(GetClientTeam(client) == GetClientTeam(attacker))
@@ -305,8 +304,8 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 // This happens when a player switches
 public Action Hook_OnWeaponSwitchPost(int client, int weapon)
 {
-	// If the cvar_KnifeSpeed convar returns false then execute this section
-	if(!GetConVarBool(cvar_KnifeSpeed))
+	// If the value of cvar_KnifeSpeedIncrease is 0 or below then execute this section
+	if(GetConVarInt(cvar_KnifeSpeedIncrease) <= 0)
 	{
 		return Plugin_Continue;
 	}
@@ -746,8 +745,8 @@ public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadca
 // This happens when a new round starts
 public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
-	// If the cvar_ObjectiveHostage is set to 0 then execute this section
-	if(!cvar_ObjectiveHostage)
+	// If the value of cvar_ObjectiveHostage is set to false then execute this section
+	if(!GetConVarBool(cvar_ObjectiveHostage))
 	{
 		// Removes all of the hostages from the map
 		RemoveEntityHostage();
@@ -837,12 +836,11 @@ public void CreateModSpecificConvars()
 	///////////////////////////////
 
 	cvar_RespawnTime = 					CreateConVar("OITC_RespawnTime", 					"3.00",	 	"How many seconds should it take before a player is respawned? - [Default = 3.00]");
-	cvar_SpawnProtectionTime = 			CreateConVar("OITC_SpawnProtectionTime", 			"5.00",	 	"How many seconds should a player be protected for after spawning (0.0 means disabled)? - [Default = 5.00]");
+	cvar_SpawnProtectionTime = 			CreateConVar("OITC_SpawnProtectionTime", 			"5.00",	 	"How many seconds should a player be protected for after spawning? (0.0 means disabled) - [Default = 5.00]");
 	cvar_SpawnProtectionColoring =		CreateConVar("OITC_SpawnProtectionColoring", 		"1",	 	"Should players be colored green while spawn protected? - [Default = 1]");
 	cvar_MaximumKills =					CreateConVar("OITC_MaximumKills", 					"50",	 	"How many kills should one player get in order to win the current round? - [Default = 50]");
 	cvar_MaximumRounds =				CreateConVar("OITC_MaximumRounds", 					"3",	 	"How many rounds should be played before the map changes? - [Default = 3]");
-	cvar_KnifeSpeed =					CreateConVar("OITC_KnifeSpeed", 					"1",	 	"Should players' speed be increased while using their knife? - [Default = 0]");
-	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? - [Default = 50]");
+	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? (0.0 means disabled) - [Default = 50]");
 	cvar_BunnyHopping =					CreateConVar("OITC_BunnyHopping", 					"1",	 	"Should the server have bunny jumping settings enabled? - [Default = 1]");
 	cvar_AutoBunnyHopping =				CreateConVar("OITC_AutoBunnyHopping", 				"0",	 	"Should players be able to automatically jump by holding down their jump key? - [Default = 0]");
 	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
@@ -851,7 +849,7 @@ public void CreateModSpecificConvars()
 	cvar_NoSpreadAndRecoil =			CreateConVar("OITC_NoSpreadAndRecoil", 				"0",	 	"Should weapons have recoil and spread removed from them? - [Default = 0]");
 	cvar_HeadshotScoreBonus =			CreateConVar("OITC_HeadshotScoreBonus", 			"1",	 	"How many points should the player receive for making a headshot? - [Default = 1]");
 	cvar_FreeForAll = 					CreateConVar("OITC_FreeForAll", 					"1",	 	"Should the game mode be set to free-for-all mode? - [Default = 1]");
-	cvar_FreeForAllModels = 			CreateConVar("OITC_FreeForAllModels", 				"1",	 	"Should all players have the same player model when the free-for-all mode is being ran? - [Default = 1]");
+	cvar_FreeForAllModels = 			CreateConVar("OITC_FreeForAllModels", 				"1",	 	"Should all players have the same player model when the free-for-all mode is active? - [Default = 1]");
 	cvar_ObjectiveBomb = 				CreateConVar("OITC_ObjectiveBomb", 					"0",	 	"Should the bomb and defusal game mode objectives be active? - [Default = 0]");
 	cvar_ObjectiveHostage = 			CreateConVar("OITC_ObjectiveHostage", 				"0",	 	"Should the hostage and rescue game mode objectives be active? - [Default = 0]");
 
@@ -863,42 +861,42 @@ public void CreateModSpecificConvars()
 // This happens when a new map is loaded
 public void ExecuteServerConfigurationFiles()
 {
-	// If the cvar_FreeForAll is set to 1 then execute this section
-	if(cvar_FreeForAll)
+	// If the value of cvar_FreeForAll is set to true then execute this section
+	if(GetConVarBool(cvar_FreeForAll))
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/freeforall_settings.cfg");
 	}
 	
-	// If the cvar_FreeForAll is set to 0 then execute this section
+	// If the cvar_FreeForAll is set to false then execute this section
 	else
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/teamdeathmatch_settings.cfg");
 	}
 
-	// If the cvar_NoSpreadAndRecoil is set to 1 then execute this section
-	if(cvar_NoSpreadAndRecoil)
+	// If the value of cvar_NoSpreadAndRecoil is set to true then execute this section
+	if(GetConVarBool(cvar_NoSpreadAndRecoil))
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
 	}
 	
-	// If the cvar_NoSpreadAndRecoil is set to 0 then execute this section
+	// If the cvar_NoSpreadAndRecoil is set to false then execute this section
 	else
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/spreadandrecoil_settings.cfg");
 	}
 
-	// If the cvar_BunnyHopping is set to 1 then execute this section
-	if(cvar_BunnyHopping)
+	// If the value of cvar_SpawnProtectionColoring is set to true then execute this section
+	if(GetConVarBool(cvar_BunnyHopping))
 	{
 		// Executes the configuration file containing the modification specific configurations
 		ServerCommand("exec sourcemod/one_in_the_chamber/normaljump_settings.cfg");
 	}
 
-	// If the cvar_BunnyHopping is set to 0 then execute this section
+	// If the cvar_BunnyHopping is set to false then execute this section
 	else
 	{
 		// Executes the configuration file containing the modification specific configurations
@@ -969,6 +967,12 @@ public void ResetPlayerScores(int client)
 // This happens when the plugin is loaded
 public void CalculateSpeedValues()
 {
+	// If the value of cvar_KnifeSpeedIncrease is 0 or below then execute this section
+	if(GetConVarInt(cvar_KnifeSpeedIncrease) <= 0)
+	{
+		return;
+	}
+
 	// Calculates the base amount of speed that the player should receive
 	knifeMovementSpeedBase = ((GetConVarFloat(cvar_KnifeSpeedIncrease) / 100) / 5) + 1.0;
 
@@ -986,7 +990,7 @@ public void SetAutoBunnyHopping()
 	// Converts the cvar_AutoBunnyHopping integer value to a string named autoBunnyHopping
 	IntToString(GetConVarInt(cvar_AutoBunnyHopping), autoBunnyHoppingString, sizeof(autoBunnyHoppingString));
 	
-	// Changes the value of mp_maxrounds to that of our cvar_MaximumRounds convar
+	// Changes the value of mp_maxrounds to that of our cvar_AutoBunnyHopping convar
 	SetConVar("sv_autobunnyhopping", autoBunnyHoppingString);
 }
 
@@ -1176,8 +1180,8 @@ public void GivePlayerSpawnProtection(int client)
 		return;
 	}
 
-	// If the value of cvar_SpawnProtectionColoring is set to 1 then execute this section
-	if(GetConVarInt(cvar_SpawnProtectionColoring))
+	// If the value of cvar_SpawnProtectionColoring is set to true then execute this section
+	if(GetConVarBool(cvar_SpawnProtectionColoring))
 	{
 		// Changes the rendering mode of the client
 		SetEntityRenderMode(client, RENDER_TRANSCOLOR);
@@ -1218,8 +1222,8 @@ public void RemoveSpawnProtection(int client, int disableReason)
 		return;
 	}
 
-	// If the value of cvar_SpawnProtectionColoring is set to 1 then execute this section
-	if(GetConVarInt(cvar_SpawnProtectionColoring))
+	// If the value of cvar_SpawnProtectionColoring is set to true then execute this section
+	if(GetConVarBool(cvar_SpawnProtectionColoring))
 	{
 		// Changes the player's color to the default color
 		SetEntityRenderColor(client, 255, 255, 255, 255);
@@ -1263,14 +1267,14 @@ public void RemoveSpawnProtection(int client, int disableReason)
 // This happens when a player spawns
 public void SetPlayerModels(int client)
 {
-	// If the cvar_FreeForAll is set to 0 then execute this section
-	if(!cvar_FreeForAll)
+	// If the value of cvar_FreeForAll is set to false then execute this section
+	if(!GetConVarBool(cvar_FreeForAll))
 	{
 		return;
 	}
 	
-	// If the cvar_FreeForAllModels is set to 0 then execute this section
-	if(!cvar_FreeForAllModels)
+	// If the value of cvar_FreeForAllModels is set to false then execute this section
+	if(!GetConVarBool(cvar_FreeForAllModels))
 	{
 		return;
 	}
@@ -1402,14 +1406,14 @@ public void EndCurrentRound(int attacker)
 	// Sets the player's MVP count to that of the playerCurrentMVPs[attacker] variable
 	SetPlayerMVPs(attacker);
 
-	// If the cvar_FreeForAll is set to 1 then execute this section
-	if(cvar_FreeForAll)
+	// If the value of cvar_FreeForAll is set to true then execute this section
+	if(GetConVarBool(cvar_FreeForAll))
 	{
 		// Forcefully ends the round and considers it a round draw
 		CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
 	}
 
-	// If the cvar_FreeForAll is set to 0 then execute this section
+	// If the cvar_FreeForAll is set to false then execute this section
 	else
 	{
 		// If the client is on the terrorist team then execute this section
