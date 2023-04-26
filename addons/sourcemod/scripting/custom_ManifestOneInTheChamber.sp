@@ -1403,6 +1403,33 @@ public void IntroductionMenu(int client)
 	Format(menuMessage, 1024, "%s\nYour gun can only contain 1 bullet", menuMessage);
 	Format(menuMessage, 1024, "%s\ngetting a kill refills the gun's clip.", menuMessage);
 
+	// If the value of cvar_KnifeSpeedIncrease is above 0 then execute this section
+	if(GetConVarInt(cvar_KnifeSpeedIncrease) > 0)
+	{
+		// If the value of cvar_OneHitKnifeAttacks is set to true then execute this section
+		if(GetConVarBool(cvar_OneHitKnifeAttacks))
+		{
+			Format(menuMessage, 1024, "%s\nKnife attacks kill in one hit.", menuMessage);
+			Format(menuMessage, 1024, "%s\nWielding a knife increases speed.", menuMessage);
+		}
+
+		// If the value of cvar_OneHitKnifeAttacks is set to true then execute this section
+		else
+		{
+			Format(menuMessage, 1024, "%s\nWielding a knife increases speed.", menuMessage);
+		}
+	}
+
+	// If the value of cvar_KnifeSpeedIncrease is 0 or below then execute this section
+	else
+	{
+		// If the value of cvar_OneHitKnifeAttacks is set to true then execute this section
+		if(GetConVarBool(cvar_OneHitKnifeAttacks))
+		{
+			Format(menuMessage, 1024, "%s\n  \nKnife attacks kill in one hit.", menuMessage);
+		}
+	}
+
 	Format(menuMessage, 1024, "%s\n  \nWin the round by earning a total of", menuMessage);
 
 	// If headshot bonus points are set to more than 1 then execute this section
@@ -1411,36 +1438,11 @@ public void IntroductionMenu(int client)
 		Format(menuMessage, 1024, "%s\n%i points. A kill awards 1 point,", menuMessage, GetConVarInt(cvar_MaximumKills));
 		Format(menuMessage, 1024, "%s\nand headshots award %i points.", menuMessage, GetConVarInt(cvar_HeadshotScoreBonus));
 	}
+
+	// If headshot bonus points are set to 0 or less then execute this section
 	else
 	{
 		Format(menuMessage, 1024, "%s\n%i points. A kill awards 1 point.", menuMessage, GetConVarInt(cvar_MaximumKills));
-	}
-
-	// If the value of cvar_KnifeSpeedIncrease is above 0 then execute this section
-	if(GetConVarInt(cvar_KnifeSpeedIncrease) > 0)
-	{
-		// If the value of cvar_LeftClickKnifing is set to false then execute this section
-		if(!GetConVarBool(cvar_LeftClickKnifing))
-		{
-			Format(menuMessage, 1024, "%s\n  \nWielding a knife increases speed.", menuMessage);
-			Format(menuMessage, 1024, "%s\nLeft-knife attacks are disabled.", menuMessage);
-		}
-
-		// If the value of cvar_LeftClickKnifing is set to true then execute this section
-		else
-		{
-			Format(menuMessage, 1024, "%s\n  \nWielding a knife increases speed.", menuMessage);
-		}
-	}
-
-	// If the value of cvar_KnifeSpeedIncrease is 0 or below then execute this section
-	else
-	{
-		// If the value of cvar_LeftClickKnifing is set to false then execute this section
-		if(!GetConVarBool(cvar_LeftClickKnifing))
-		{
-			Format(menuMessage, 1024, "%s\n  \nLeft-knife attacks are disabled.", menuMessage);
-		}
 	}
 
 	// If the value of cvar_RandomPistols is set to true then execute this section
@@ -1451,6 +1453,8 @@ public void IntroductionMenu(int client)
 		Format(menuMessage, 1024, "%s\nafter %i rounds the map changes.", menuMessage, GetConVarInt(cvar_MaximumRounds));
 
 	}
+
+	// If the value of cvar_RandomPistols is set to false then execute this section
 	else
 	{
 		Format(menuMessage, 1024, "%s\n  \nAfter %i rounds the map changes.", menuMessage, GetConVarInt(cvar_MaximumRounds));
@@ -1459,10 +1463,8 @@ public void IntroductionMenu(int client)
 	// If the value of cvar_FreeForAll is set to true then execute this section
 	if(GetConVarBool(cvar_FreeForAll))
 	{
-		Format(menuMessage, 1024, "%s\n  \nThe game is set to free for all.", menuMessage);
+		Format(menuMessage, 1024, "%s\nThe game is set to free for all.", menuMessage);
 	}
-
-	Format(menuMessage, 1024, "%s\n  ", menuMessage);
 
 	// Adds a title to our menu
 	introductionMenu.SetTitle(menuMessage, "Introduction");
