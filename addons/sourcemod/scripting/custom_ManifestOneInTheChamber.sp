@@ -129,6 +129,22 @@ public void OnPluginEnd()
 {
 	// Sends the specified multi-language message to all clients
 	SendChatMessageToAll("Chat - Mod Unloaded");
+
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
+		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+		// Adds a hook to the client which will let us track when the player takes damage
+		SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+	}
 }
 
 
@@ -242,6 +258,36 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 	// Obtains the classname of the weapon entity and store it within our ClassName variable
 	GetEntityClassname(weapon, className, sizeof(className));
 
+	// If the pistolClassName variable is weapon_cz75a then execute this section
+	if(StrEqual(pistolClassName, "weapon_cz75a", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_p250", false))
+		{
+			return Plugin_Continue;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_usp_silencer then execute this section
+	else if(StrEqual(pistolClassName, "weapon_usp_silencer", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_hkp2000", false))
+		{
+			return Plugin_Continue;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_revolver then execute this section
+	else if(StrEqual(pistolClassName, "weapon_revolver", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_deagle", false))
+		{
+			return Plugin_Continue;
+		}
+	}
+
 	// If the weapon's entity name is that of a pistols's or knife then execute this section
 	if(StrEqual(className, pistolClassName, false) | StrEqual(className, "weapon_knife", false))
 	{
@@ -311,6 +357,54 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 		CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
 
 		return Plugin_Changed;
+	}
+
+	// If the pistolClassName variable is weapon_cz75a then execute this section
+	if(StrEqual(pistolClassName, "weapon_cz75a", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_p250", false))
+		{
+			// Changes the amount of damage to zero
+			damage = 500.0;
+
+			// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+			CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
+
+			return Plugin_Changed;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_usp_silencer then execute this section
+	else if(StrEqual(pistolClassName, "weapon_usp_silencer", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_hkp2000", false))
+		{
+			// Changes the amount of damage to zero
+			damage = 500.0;
+
+			// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+			CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
+
+			return Plugin_Changed;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_revolver then execute this section
+	else if(StrEqual(pistolClassName, "weapon_revolver", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_deagle", false))
+		{
+			// Changes the amount of damage to zero
+			damage = 500.0;
+
+			// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
+			CreateTimer(0.0, Timer_GiveAmmo, attacker, TIMER_FLAG_NO_MAPCHANGE);
+
+			return Plugin_Changed;
+		}
 	}
 
 	// If the cvar_OneHitKnifeAttacks convar returns false then execute this section
@@ -1260,6 +1354,9 @@ public void ChooseRandomWeapon()
 		{
 			// Changes this round's weapon to the specified one
 			pistolClassName = "weapon_revolver";
+
+			// Sets the weaponGivingFailSafe variable to false
+			weaponGivingFailSafe = true;
 		}
 
 		case 5:
@@ -1284,6 +1381,9 @@ public void ChooseRandomWeapon()
 		{
 			// Changes this round's weapon to the specified one
 			pistolClassName = "weapon_cz75a";
+
+			// Sets the weaponGivingFailSafe variable to false
+			weaponGivingFailSafe = true;
 		}
 
 		case 9:
@@ -1299,6 +1399,9 @@ public void ChooseRandomWeapon()
 		{
 			// Changes this round's weapon to the specified one
 			pistolClassName = "weapon_usp_silencer";
+
+			// Sets the weaponGivingFailSafe variable to false
+			weaponGivingFailSafe = true;
 		}
 	}
 
@@ -1742,6 +1845,54 @@ public void ChangePlayerAmmo(int client)
 
 	// Obtains the entity's class name and store it within our className variable
 	GetEntityClassname(entity, className, sizeof(className));
+
+	// If the pistolClassName variable is weapon_cz75a then execute this section
+	if(StrEqual(pistolClassName, "weapon_cz75a", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_p250", false))
+		{
+			// Changes the amount of ammo in the player's pistol clip
+			SetEntProp(entity, Prop_Send, "m_iClip1", 1);
+
+			// Changes the amount of spare ammot the player have for their pistol 
+			SetEntProp(entity, Prop_Send, "m_iPrimaryReserveAmmoCount", 0);
+
+			return;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_usp_silencer then execute this section
+	else if(StrEqual(pistolClassName, "weapon_usp_silencer", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_hkp2000", false))
+		{
+			// Changes the amount of ammo in the player's pistol clip
+			SetEntProp(entity, Prop_Send, "m_iClip1", 1);
+
+			// Changes the amount of spare ammot the player have for their pistol 
+			SetEntProp(entity, Prop_Send, "m_iPrimaryReserveAmmoCount", 0);
+
+			return;
+		}
+	}
+
+	// If the pistolClassName variable is weapon_revolver then execute this section
+	else if(StrEqual(pistolClassName, "weapon_revolver", false))
+	{
+		// If the weapon's entity name is that of the specified pistols's then execute this section
+		if(StrEqual(className, "weapon_deagle", false))
+		{
+			// Changes the amount of ammo in the player's pistol clip
+			SetEntProp(entity, Prop_Send, "m_iClip1", 1);
+
+			// Changes the amount of spare ammot the player have for their pistol 
+			SetEntProp(entity, Prop_Send, "m_iPrimaryReserveAmmoCount", 0);
+
+			return;
+		}
+	}
 
 	// If the weapon's entity name is that of a pistols then execute this section
 	if(!StrEqual(className, pistolClassName, false))
