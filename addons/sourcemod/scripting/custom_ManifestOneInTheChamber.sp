@@ -626,6 +626,12 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 
+	// If the attacker is the same as the victim (suicide) then execute this section or if the attacker is the world like for fall damage etc.
+	if((attacker == client) | (attacker == 0))
+	{
+		return Plugin_Continue;
+	}
+
 	// If the game still hasn't ended then execute this section
 	if(!gameHasEnded)
 	{
