@@ -865,8 +865,6 @@ public Action Event_WeaponFire(Handle event, const char[] name, bool dontBroadca
 
 
 
-
-
 ///////////////////////////
 // - Regular Functions - //
 ///////////////////////////
@@ -959,6 +957,9 @@ public void LateLoadSupport()
 	// Sends the specified multi-language message to all clients
 	SendChatMessageToAll("Chat - Mod Loaded");
 
+	// Ends the round informing players about a new round soon starting
+	EndCurrentRoundByReloading();
+
 	// Changes this round's weapon to the specified one
 	pistolClassName = "weapon_deagle";
 
@@ -992,6 +993,46 @@ public void LateLoadSupport()
 
 		// Adds a hook to the client which will let us track when the player switches weapon
 		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
+	}
+}
+
+
+// This happens when the game mode is being loaded 
+public void EndCurrentRoundByReloading()
+{
+	// Changes the game state to having ended
+	gameHasEnded = true;
+
+	// Forcefully ends the round and considers it a round draw
+	CS_TerminateRound(GetConVarFloat(FindConVar("mp_round_restart_delay")), CSRoundEnd_Draw);
+
+	// Creates a variable which we will use to store our data within
+	char hudMessage[1024];
+
+	// Modifies the contents stored within the hudMessage variable
+	Format(hudMessage, 1024, "\n<font color='#fbb227'>Loading:</font>");
+	Format(hudMessage, 1024, "%s\n<font color='#fbb227'>A new round is</font><font color='#5fd6f9'> commencing soon</font><font color='#5fd6f9'>!</font>", hudMessage);
+
+	// Loops through all of the clients
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		// If the client does not meet our validation criteria then execute this section
+		if(!IsValidClient(client))
+		{
+			continue;
+		}
+
+		// Renders the player unable to move or perform any movement related actions
+		SetEntityFlags(client, GetEntityFlags(client) | FL_FROZEN);
+
+		// If the client is a bot then execute this section
+		if(IsFakeClient(client))
+		{
+			continue;
+		}
+
+		// Displays the contents of our hudMessage variable for the client to see in the hint text area of their screen 
+		PrintHintText(client, hudMessage);
 	}
 }
 
