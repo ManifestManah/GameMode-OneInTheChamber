@@ -51,6 +51,7 @@ ConVar cvar_ObjectiveHostage;
 
 // Global Booleans
 bool gameHasEnded = false;
+bool weaponGivingFailSafe = false;
 bool isSpawnProtected[MAXPLAYERS + 1] = {false,...};
 
 
@@ -65,6 +66,10 @@ int playerWeaponSwapCounter[MAXPLAYERS + 1] = {0, ...};
 // Global Floats
 float knifeMovementSpeedBase = 1.0;
 float KnifeMovementSpeedIncrement = 0.0;
+
+
+// Global Characters
+char pistolClassName[64];
 
 
 
@@ -212,7 +217,7 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 	GetEntityClassname(weapon, className, sizeof(className));
 
 	// If the weapon's entity name is that of a pistols's or knife then execute this section
-	if(StrEqual(className, "weapon_deagle", false) | StrEqual(className, "weapon_knife", false))
+	if(StrEqual(className, pistolClassName, false) | StrEqual(className, "weapon_knife", false))
 	{
 		return Plugin_Continue;
 	}
@@ -271,7 +276,7 @@ public Action Hook_OnTakeDamage(int client, int &attacker, int &inflictor, float
 	GetEntityClassname(entity, className, sizeof(className));
 
 	// If the weapon's entity name is that of a pistols then execute this section
-	if(StrEqual(className, "weapon_deagle", false))
+	if(StrEqual(className, pistolClassName, false))
 	{
 		// Changes the amount of damage to zero
 		damage = 500.0;
@@ -566,6 +571,18 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 		return;
 	}
 
+	// Removes the hook that we had added to the client to track when he was eligible to pick up weapons
+	SDKUnhook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+	// Removes the hook that we had added to the client to track when the player took damage
+	SDKUnhook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
+	// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
+	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
+
+	// Adds a hook to the client which will let us track when the player takes damage
+	SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
+
 	// Renders the player immune to any incoming damage
 	GivePlayerSpawnProtection(client);
 
@@ -584,11 +601,11 @@ public void Event_PlayerSpawn(Handle event, const char[] name, bool dontBroadcas
 	// Gives the client a knife
 	GiveKnife(client);
 
-	// Gives the client a pistol
-	GivePistol(client);
+	// Gives the player a pistol after 0.1 seconds
+	CreateTimer(0.1, Timer_GivePistol, client, TIMER_FLAG_NO_MAPCHANGE);
 
-	// Calls upon the Timer_RespawnPlayer function after (3.0 default) seconds
-	CreateTimer(0.1, Timer_GiveAmmo, client, TIMER_FLAG_NO_MAPCHANGE);
+	// Changes the ammo of the player's pistol after 0.2 seconds
+	CreateTimer(0.2, Timer_GiveAmmo, client, TIMER_FLAG_NO_MAPCHANGE);
 
 	// If the game still hasn't ended then execute this section
 	if(!gameHasEnded)
@@ -745,6 +762,9 @@ public Action Event_PlayerTeam(Handle event, const char[] name, bool dontBroadca
 // This happens when a new round starts
 public void Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
+	// Chooses a random weapon from a list of weapons that will be the one used during this round
+	ChooseRandomWeapon();
+
 	// If the value of cvar_ObjectiveHostage is set to false then execute this section
 	if(!GetConVarBool(cvar_ObjectiveHostage))
 	{
@@ -911,6 +931,9 @@ public void ExecuteServerConfigurationFiles()
 // This happens when the plugin is loaded
 public void LateLoadSupport()
 {
+	// Chooses a random weapon from a list of weapons that will be the one used during this round
+	ChooseRandomWeapon();
+
 	// Precaches the contents that requires precaching
 	PrecacheContents();
 
@@ -931,12 +954,6 @@ public void LateLoadSupport()
 
 		// Resets the client's mvp awards back to zero
 		CS_SetMVPCount(client, 0);
-
-		// Adds a hook to the client which will let us track when the player is eligible to pick up a weapon
-		SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
-
-		// Adds a hook to the client which will let us track when the player takes damage
-		SDKHook(client, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
 
 		// Adds a hook to the client which will let us track when the player switches weapon
 		SDKHook(client, SDKHook_WeaponSwitchPost, Hook_OnWeaponSwitchPost);
@@ -1099,6 +1116,90 @@ public void RemoveEntityHostageRescuePoint()
 		// Kills the entity, removing it from the game
 		AcceptEntityInput(entity, "Kill");
 	}
+}
+
+
+// This happens when a new round starts
+public void ChooseRandomWeapon()
+{
+	// Changes this round's weapon to the specified one
+	pistolClassName = "weapon_deagle";
+
+	// Sets the weaponGivingFailSafe variable to false
+	weaponGivingFailSafe = false;
+
+	// Picks a random number between 1 and 10 and store it within our randomWeapon variable
+	int randomWeapon = GetRandomInt(1, 10);
+
+	// Creates a switch statement to manage outcomes depnding on the value of our variable
+	switch(randomWeapon)
+	{
+		// If the randomWeapon variable is 1 then execute this section
+		case 1:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_glock";
+		}
+
+		case 2:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_fiveseven";
+		}
+
+		case 3:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_tec9";
+		}
+
+		case 4:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_revolver";
+		}
+
+		case 5:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_deagle";
+		}
+
+		case 6:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_elite";
+		}
+
+		case 7:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_p250";
+		}
+
+		case 8:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_cz75a";
+		}
+
+		case 9:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_hkp2000";
+
+			// Sets the weaponGivingFailSafe variable to false
+			weaponGivingFailSafe = true;
+		}
+
+		case 10:
+		{
+			// Changes this round's weapon to the specified one
+			pistolClassName = "weapon_usp_silencer";
+		}
+	}
+
+	PrintToChatAll("Number %i - This Round's weapon is %s !", randomWeapon, pistolClassName);
 }
 
 
@@ -1358,8 +1459,43 @@ public void GiveKnife(int client)
 // This happens when a player spawns
 public void GivePistol(int client)
 {
+	// If the weaponGivingFailSafe variable is set to true then execute this section
+	if(weaponGivingFailSafe)
+	{
+		// Gives the client the specified weapon
+		GivePlayerWeaponEntity(client);
+
+		return;
+	}
+
 	// Gives the client the specified weapon
-	GivePlayerItem(client, "weapon_deagle");
+	GivePlayerItem(client, pistolClassName);
+}
+
+
+// This happens when a player spawns
+public void GivePlayerWeaponEntity(int client)
+{
+	// Creates a healthshot and store it's index within our entity variable
+	int entity = CreateEntityByName(pistolClassName);
+
+	// If the entity does not meet our criteria validation then execute this section
+	if(!IsValidEntity(entity))
+	{
+		return;
+	}
+
+	// Creates a variable to store our data within
+	float playerLocation[3];
+
+	// Obtains the client's location and store it within the playerLocation variable
+	GetEntPropVector(client, Prop_Data, "m_vecOrigin", playerLocation);
+
+	// Spawns the entity
+	DispatchSpawn(entity);
+
+	// Teleports the entity to the player's location
+	TeleportEntity(entity, playerLocation, NULL_VECTOR, NULL_VECTOR);
 }
 
 
@@ -1381,7 +1517,7 @@ public void ChangePlayerAmmo(int client)
 	GetEntityClassname(entity, className, sizeof(className));
 
 	// If the weapon's entity name is that of a pistols then execute this section
-	if(!StrEqual(className, "weapon_deagle", false))
+	if(!StrEqual(className, pistolClassName, false))
 	{
 		return;
 	}
@@ -1605,6 +1741,35 @@ public Action Timer_RemoveSpawnProtection(Handle timer, DataPack dataPackage)
 
 	return Plugin_Stop;
 }
+
+
+// This function is called upon briefly after a player changes team or dies
+public Action Timer_GivePistol(Handle timer, int client)
+{
+	// If the client does not meet our validation criteria then execute this section
+	if(!IsValidClient(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is on the spectator or observer team then execute this section
+	if(GetClientTeam(client) <= 1)
+	{
+		return Plugin_Continue;
+	}
+
+	// If the client is not alive then execute this section
+	if(!IsPlayerAlive(client))
+	{
+		return Plugin_Continue;
+	}
+
+	// Gives the client a pistol
+	GivePistol(client);
+
+	return Plugin_Continue;
+}
+
 
 
 // This function is called upon briefly after a player changes team or dies
