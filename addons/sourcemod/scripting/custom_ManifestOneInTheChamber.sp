@@ -785,6 +785,9 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 
 				// Adds additional kills to the player's score
 				SetEntProp(attacker, Prop_Data, "m_iFrags", playerCurrentKills[attacker]);
+
+				// Sends a multi-language message to the client
+				CPrintToChat(attacker, "%t", "Chat - Headshot Bonus", GetConVarInt(cvar_HeadshotScoreBonus) - 1);
 			}
 
 			// If the attack was not a headshot then execute this section
