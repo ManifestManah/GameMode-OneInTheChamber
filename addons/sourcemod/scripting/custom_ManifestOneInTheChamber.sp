@@ -34,6 +34,7 @@ ConVar cvar_MaximumRounds;
 ConVar cvar_KnifeSpeedIncrease;
 ConVar cvar_BunnyHopping;
 ConVar cvar_AutoBunnyHopping;
+ConVar cvar_FallDamage;
 ConVar cvar_MaximumVelocity;
 ConVar cvar_LeftClickKnifing;
 ConVar cvar_OneHitKnifeAttacks;
@@ -159,6 +160,9 @@ public void OnMapStart()
 
 	// Sets the maximum amount of rounds that should be played
 	SetMaxRounds();
+
+	// Sets the amount of fall damage players should take
+	SetFallDamage();
 
 	// Sets the maximum amount of velocity that should be possible for a player to acquire
 	SetMaxVelocity();
@@ -991,6 +995,7 @@ public void CreateModSpecificConvars()
 	cvar_KnifeSpeedIncrease =			CreateConVar("OITC_KnifeSpeedIncrease", 			"40",	 	"How much increased speed, in percentages, should the player receive while using their knife? (0.0 means disabled) - [Default = 50]");
 	cvar_BunnyHopping =					CreateConVar("OITC_BunnyHopping", 					"1",	 	"Should the server have bunny jumping settings enabled? - [Default = 1]");
 	cvar_AutoBunnyHopping =				CreateConVar("OITC_AutoBunnyHopping", 				"0",	 	"Should players be able to automatically jump by holding down their jump key? - [Default = 0]");
+	cvar_FallDamage =					CreateConVar("OITC_FallDamage", 					"1",	 	"Should players be able to take damage from falling? - [Default = 1]");
 	cvar_MaximumVelocity =				CreateConVar("OITC_MaximumVelocity", 				"400",	 	"What is the maximum velocity a player should be able to achieve? - [Default = 400]");
 	cvar_LeftClickKnifing =				CreateConVar("OITC_LeftClickKnifing", 				"0",	 	"Should players be able to use the left knife attack? - [Default = 0]");
 	cvar_RandomPistols =				CreateConVar("OITC_RandomPistols", 					"0",	 	"Should the players be given a random pistol every new round? - [Default = 0]");
@@ -1212,6 +1217,20 @@ public void SetAutoBunnyHopping()
 	
 	// Changes the value of mp_maxrounds to that of our cvar_AutoBunnyHopping convar
 	SetConVar("sv_autobunnyhopping", autoBunnyHoppingString);
+}
+
+
+// This happens when a new map is loaded
+public void SetFallDamage()
+{
+	// Creates a variable to store our data within
+	char valueString[128];
+
+	// Converts the cvar_FallDamage integer value to a string named autoBunnyHopping
+	IntToString(GetConVarInt(cvar_FallDamage), valueString, sizeof(valueString));
+	
+	// Changes the value of mp_maxrounds to that of our cvar_FallDamage convar
+	SetConVar("sv_falldamage_scale", valueString);
 }
 
 
