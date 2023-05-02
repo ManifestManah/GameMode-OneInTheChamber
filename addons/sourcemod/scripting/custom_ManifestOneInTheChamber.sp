@@ -1108,6 +1108,12 @@ public void LateLoadSupport()
 // This happens when the game mode is being loaded 
 public void EndCurrentRoundByReloading()
 {
+	// If there are 0 or fewer clients in the game then execute this section
+	if(GetClientCount() <= 0)
+	{
+		return;
+	}
+
 	// Changes the game state to having ended
 	gameHasEnded = true;
 
