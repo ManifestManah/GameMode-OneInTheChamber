@@ -1047,14 +1047,14 @@ public void ExecuteServerConfigurationFiles()
 	if(GetConVarBool(cvar_BunnyHopping))
 	{
 		// Executes the configuration file containing the modification specific configurations
-		ServerCommand("exec sourcemod/one_in_the_chamber/normaljump_settings.cfg");
+		ServerCommand("exec sourcemod/one_in_the_chamber/bunnyjump_settings.cfg");
 	}
 
 	// If the cvar_BunnyHopping is set to false then execute this section
 	else
 	{
 		// Executes the configuration file containing the modification specific configurations
-		ServerCommand("exec sourcemod/one_in_the_chamber/nospreadandrecoil_settings.cfg");
+		ServerCommand("exec sourcemod/one_in_the_chamber/normaljump_settings.cfg");
 	}
 
 	// Executes the configuration file containing the modification specific configurations
