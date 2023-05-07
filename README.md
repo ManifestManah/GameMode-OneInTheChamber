@@ -1,4 +1,4 @@
-# [One In The Chamber]
+# [Game Mode: One In The Chamber]
 ## About
 "One In The Chamber" is a new game mode for Counter-Strike: Global Offensive laregely inspired by the game mode with the same name from the Call Of Duty series.
 With "One In The Chamber" installed on the server players will spawn with nothing else than a pistol and a knife. The pistol can only contain one bullet, but the bullet always kill the enemy in the first shot.
